@@ -1,74 +1,66 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @ObservedObject var viewModel: AuthViewModel
+    @EnvironmentObject var viewModel: AuthViewModel
     
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 // MARK: - Header
-                ZStack(alignment: .bottomLeading) {
-                    AppColors.primaryGradient
-                        .frame(height: 160)
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Profile")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("Manage your account")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 40)
-                }
-                
+                LinearGradient(gradient: Gradient(colors: [Color.blue, Color(red: 0.1, green: 0.4, blue: 0.8)]), startPoint: .top, endPoint: .bottom)
+                    .frame(height: 150)
+                    .overlay(
+                        VStack(alignment: .leading) {
+                            Text("Profile")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(.white)
+                            Text("Manage your account")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color.blue.opacity(0.2))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.top, 20)
+                    )
+
                 VStack(spacing: 20) {
                     // MARK: - Profile Card
-                    HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(AppColors.avatarGradient)
-                                .frame(width: 64, height: 64)
-                            Image(systemName: "person.fill")
-                                .font(.title)
-                                .foregroundColor(.white)
-                        }
+                    HStack(spacing: 15) {
+                        Circle()
+                            .fill(LinearGradient(gradient: Gradient(colors: [.blue.opacity(0.7), .blue]), startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 65, height: 65)
+                            .overlay(Text(viewModel.currentUser?.initials ?? "??").foregroundColor(.white).bold())
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Guest User")
+                        VStack(alignment: .leading) {
+                            Text(viewModel.currentUser?.fullname ?? "Guest User")
                                 .font(.headline)
-                            Text(viewModel.email.isEmpty ? "guest@example.com" : viewModel.email)
-                                .foregroundColor(AppColors.secondaryText)
+                                .foregroundColor(.black)
+                            Text(viewModel.currentUser?.email ?? "email@example.com")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                         }
-                        
                         Spacer()
-                        
-                        Button("Edit") {
-                            // Edit Action
-                        }
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.blue)
+                        Button("Edit") {}.foregroundColor(.blue).font(.subheadline)
                     }
                     .padding()
                     .background(Color.white)
                     .cornerRadius(20)
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
-                    .padding(.top, -30) // Overlaps header
-                    
+                    .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
+                    .padding(.top, -35)
+
                     // MARK: - Stats
                     HStack(spacing: 12) {
-                        StatCard(value: "12", label: "Bookings")
-                        StatCard(value: "8", label: "Saved")
-                        StatCard(value: "$342", label: "Saved")
+                        StatCard(value: "\(viewModel.currentUser?.bookingsCount ?? 0)", label: "Bookings")
+                        StatCard(value: "\(viewModel.currentUser?.savedCount ?? 0)", label: "Saved")
+                        StatCard(value: viewModel.currentUser?.totalSavedMoney ?? "$0", label: "Saved")
                     }
-                    
-                    // MARK: - Menu Sections
-                    VStack(spacing: 24) {
+
+                    // MARK: - Menu
+                    VStack(spacing: 15) {
                         MenuSection(title: "Account") {
                             MenuItem(icon: "person", label: "Personal Information")
                             MenuItem(icon: "creditcard", label: "Payment Methods")
-                            MenuItem(icon: "mappin.and.ellipse", label: "Saved Locations")
+                            MenuItem(icon: "mappin", label: "Saved Locations")
                         }
                         
                         MenuSection(title: "Preferences") {
@@ -83,61 +75,41 @@ struct ProfileView: View {
                             }
                         }
                     }
-                    .padding(.bottom, 30)
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal)
             }
         }
-        .background(AppColors.screenBackground)
-        .ignoresSafeArea(edges: .top)
+        .background(Color(red: 0.98, green: 0.98, blue: 1.0))
     }
 }
 
-// MARK: - Supporting Components
-
+// MARK: - Subviews
 struct StatCard: View {
     let value: String
     let label: String
-    
     var body: some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(.system(size: 18, weight: .bold))
-            Text(label)
-                .font(.system(size: 12))
-                .foregroundColor(.gray)
+        VStack {
+            Text(value).font(.headline).bold()
+            Text(label).font(.caption).foregroundColor(.gray)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 15)
         .background(Color.white)
         .cornerRadius(15)
-        .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
     }
 }
 
 struct MenuSection<Content: View>: View {
     let title: String
     let content: Content
-    
     init(title: String, @ViewBuilder content: () -> Content) {
         self.title = title
         self.content = content()
     }
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title.uppercased())
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.gray)
-                .kerning(1)
-                .padding(.leading, 4)
-            
-            VStack(spacing: 0) {
-                content
-            }
-            .background(Color.white)
-            .cornerRadius(20)
-            .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title.uppercased()).font(.caption2).bold().foregroundColor(.gray).padding(.leading, 5)
+            VStack(spacing: 0) { content }.background(Color.white).cornerRadius(20)
         }
     }
 }
@@ -151,34 +123,17 @@ struct MenuItem: View {
     
     var body: some View {
         Button(action: { action?() }) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(isDanger ? AppColors.danger : .primary)
-                    .frame(width: 24)
-                
-                Text(label)
-                    .foregroundColor(isDanger ? .red : .primary)
-                
+            HStack {
+                Image(systemName: icon).foregroundColor(isDanger ? .red : .gray).frame(width: 25)
+                Text(label).foregroundColor(isDanger ? .red : .black)
                 Spacer()
-                
                 if let badge = badge {
-                    Text(badge)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.blue)
-                        .clipShape(Capsule())
+                    Text(badge).font(.caption2).bold().padding(5).background(Color.blue).foregroundColor(.white).clipShape(Circle())
                 }
-                
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.gray.opacity(0.5))
+                Image(systemName: "chevron.right").font(.caption).foregroundColor(.gray)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding()
         }
-        Divider().padding(.leading, 50) // Matches Figma's inset divider
+        Divider().padding(.leading, 50)
     }
 }

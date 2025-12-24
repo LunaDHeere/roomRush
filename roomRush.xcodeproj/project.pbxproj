@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5A4A7DBE2EFB2B7B00CE227B /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5A4A7DBD2EFB2B7B00CE227B /* FirebaseFirestore */; };
 		5A99C8752EF9E0B60050018B /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5A99C8742EF9E0B60050018B /* FirebaseCore */; };
 		5A99C8772EF9E0BC0050018B /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5A99C8762EF9E0BC0050018B /* FirebaseAnalytics */; };
 		5A99C8792EF9E0DA0050018B /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5A99C8782EF9E0DA0050018B /* FirebaseAuth */; };
@@ -30,6 +31,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A99C8772EF9E0BC0050018B /* FirebaseAnalytics in Frameworks */,
+				5A4A7DBE2EFB2B7B00CE227B /* FirebaseFirestore in Frameworks */,
 				5A99C8792EF9E0DA0050018B /* FirebaseAuth in Frameworks */,
 				5A99C8752EF9E0B60050018B /* FirebaseCore in Frameworks */,
 			);
@@ -85,6 +87,7 @@
 				5A99C8742EF9E0B60050018B /* FirebaseCore */,
 				5A99C8762EF9E0BC0050018B /* FirebaseAnalytics */,
 				5A99C8782EF9E0DA0050018B /* FirebaseAuth */,
+				5A4A7DBD2EFB2B7B00CE227B /* FirebaseFirestore */,
 			);
 			productName = roomRush;
 			productReference = 5A293A922EF8D5D30070C59C /* roomRush.app */;
@@ -370,6 +373,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5A4A7DBD2EFB2B7B00CE227B /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5A99C8722EF982840050018B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
 		5A99C8742EF9E0B60050018B /* FirebaseCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5A99C8722EF982840050018B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

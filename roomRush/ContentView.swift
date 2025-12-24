@@ -14,7 +14,7 @@ struct ContentView: View {
         Group {
             if authViewModel.isAuthenticated {
                 // This is where they go AFTER logging in
-                HomeScreen()
+                ProfileView()
             } else {
                 // This is the landing page
                 LoginView(viewModel: authViewModel)
