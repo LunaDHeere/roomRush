@@ -1,0 +1,23 @@
+https://stackoverflow.com/questions/6543026/how-to-format-code-in-xcode
+
+https://firebase.google.com/docs/ios/setup
+
+https://developer.apple.com/tutorials/swiftui
+
+https://lucide.dev/icons/
+
+https://www.hackingwithswift.com/quick-start/swiftui/
+
+https://stackoverflow.com/questions/79795184/in-swift-how-to-resolve-warning-about-main-actor-isolated-conformance-cannot-be
+
+https://stackoverflow.com/questions/72680741/how-to-map-a-firebase-document-to-swift
+
+https://developer.apple.com/forums/thread/699003
+
+Gemini
+
+ChatGPT
+
+Figma & Figma AI for the UI design
+                        
+https://github.com/onevcat/Kingfisher

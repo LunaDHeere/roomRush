@@ -1,9 +1,3 @@
-//
-//  roomRushApp.swift
-//  roomRush
-//
-//  Created by Amina Iqbal on 22/12/2025.
-//
 
 import SwiftUI
 import CoreData

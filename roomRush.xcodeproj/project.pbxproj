@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5A4A7DBE2EFB2B7B00CE227B /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5A4A7DBD2EFB2B7B00CE227B /* FirebaseFirestore */; };
+		5A4A7DFA2EFD944D00CE227B /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 5A4A7DF92EFD944D00CE227B /* Kingfisher */; };
 		5A99C8752EF9E0B60050018B /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5A99C8742EF9E0B60050018B /* FirebaseCore */; };
 		5A99C8772EF9E0BC0050018B /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5A99C8762EF9E0BC0050018B /* FirebaseAnalytics */; };
 		5A99C8792EF9E0DA0050018B /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5A99C8782EF9E0DA0050018B /* FirebaseAuth */; };
@@ -17,9 +18,22 @@
 		5A293A922EF8D5D30070C59C /* roomRush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = roomRush.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5A4A7DF72EFD8AE600CE227B /* Exceptions for "roomRush" folder in "roomRush" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Sources.txt,
+			);
+			target = 5A293A912EF8D5D30070C59C /* roomRush */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5A293A942EF8D5D40070C59C /* roomRush */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5A4A7DF72EFD8AE600CE227B /* Exceptions for "roomRush" folder in "roomRush" target */,
+			);
 			path = roomRush;
 			sourceTree = "<group>";
 		};
@@ -34,6 +48,7 @@
 				5A4A7DBE2EFB2B7B00CE227B /* FirebaseFirestore in Frameworks */,
 				5A99C8792EF9E0DA0050018B /* FirebaseAuth in Frameworks */,
 				5A99C8752EF9E0B60050018B /* FirebaseCore in Frameworks */,
+				5A4A7DFA2EFD944D00CE227B /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +103,7 @@
 				5A99C8762EF9E0BC0050018B /* FirebaseAnalytics */,
 				5A99C8782EF9E0DA0050018B /* FirebaseAuth */,
 				5A4A7DBD2EFB2B7B00CE227B /* FirebaseFirestore */,
+				5A4A7DF92EFD944D00CE227B /* Kingfisher */,
 			);
 			productName = roomRush;
 			productReference = 5A293A922EF8D5D30070C59C /* roomRush.app */;
@@ -119,6 +135,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				5A99C8722EF982840050018B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				5A4A7DF82EFD944D00CE227B /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5A293A932EF8D5D30070C59C /* Products */;
@@ -362,6 +379,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5A4A7DF82EFD944D00CE227B /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.6.2;
+			};
+		};
 		5A99C8722EF982840050018B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -377,6 +402,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5A99C8722EF982840050018B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		5A4A7DF92EFD944D00CE227B /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5A4A7DF82EFD944D00CE227B /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 		5A99C8742EF9E0B60050018B /* FirebaseCore */ = {
 			isa = XCSwiftPackageProductDependency;
