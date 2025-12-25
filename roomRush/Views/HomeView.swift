@@ -4,7 +4,9 @@ import Kingfisher
 
 struct HomeView: View {
     @StateObject var viewModel = HomeViewModel()
-    
+    @EnvironmentObject var authViewModel: AuthViewModel
+
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -115,6 +117,7 @@ struct FilterChipView: View {
 struct DealCardView: View {
     let deal: Deal
     @State private var isFavorite = false
+    @EnvironmentObject var authViewModel: AuthViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -138,8 +141,12 @@ struct DealCardView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 
                 // Top Right: Favorite Button
-                Button { isFavorite.toggle() } label: {
-                    Image(systemName: isFavorite ? "heart.fill" : "heart")
+                Button {
+                    authViewModel.toggleFavourite(dealId: deal.id ?? "")
+                } label: {
+                    let isCurrentlyFavourited = authViewModel.currentUser?.favourites.contains(deal.id ?? "") ?? false
+                    
+                    Image(systemName: isCurrentlyFavourited ? "heart.fill" : "heart")
                         .font(.system(size: 18))
                         .foregroundColor(isFavorite ? .red : .gray)
                         .padding(10)

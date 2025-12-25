@@ -29,9 +29,15 @@ class AuthViewModel: ObservableObject {
             
             guard let userId = result?.user.uid else { return }
             
-            let newUser = User(id: userId, fullname: self.fullname, email: self.email)
+            // New user starts with false
+            let newUser = User(id: userId, fullname: self.fullname, email: self.email, hasCompletedOnboarding: false)
             
             self.saveUserToFirestore(newUser)
+            
+            Task { @MainActor in
+                self.completedOnboarding = false
+                self.isAuthenticated = true
+            }
         }
     }
     
@@ -50,13 +56,28 @@ class AuthViewModel: ObservableObject {
     
     // MARK: - Fetch User
     func fetchUser(userId: String) {
-        db.collection("users").document(userId).getDocument { snapshot, _ in
+        db.collection("users").document(userId).getDocument { snapshot, error in
+            if let error = error {
+                self.showError(error)
+                return
+            }
+            
             Task { @MainActor in
                 guard let snapshot = snapshot,
-                      let user = try? snapshot.data(as: User.self) else { return }
+                      let user = try? snapshot.data(as: User.self) else {
+                    print("DEBUG: Could not decode user")
+                    return
+                }
                 
                 self.currentUser = user
+                
+                // Logic: If they are signing in, they already exist in DB.
+                // We assume they completed onboarding unless the DB says otherwise.
+                // Or, if you want to be safe, check the specific boolean:
+                self.completedOnboarding = user.hasCompletedOnboarding
+                
                 self.isAuthenticated = true
+                print("DEBUG: User signed in. Onboarding status: \(self.completedOnboarding)")
             }
         }
     }
@@ -85,6 +106,24 @@ class AuthViewModel: ObservableObject {
         } catch {
             print("Failed to save user: \(error.localizedDescription)")
         }
+    }
+    
+    func toggleFavourite(dealId: String) {
+        guard var user = currentUser else { return }
+        
+        if user.favourites.contains(dealId) {
+            user.favourites.removeAll { $0 == dealId }
+        } else {
+            user.favourites.append(dealId)
+        }
+        
+        // Update local state immediately for UI snappiness
+        self.currentUser = user
+        
+        // Update Firestore
+        db.collection("users").document(user.id).updateData([
+            "favourites": user.favourites
+        ])
     }
 }
 
