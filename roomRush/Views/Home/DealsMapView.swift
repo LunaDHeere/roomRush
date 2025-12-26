@@ -18,7 +18,7 @@ struct DealsMapView: View {
     
     @State private var searchText = ""
     @State private var isSearching = false
-
+    
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
@@ -101,7 +101,9 @@ struct DealsMapView: View {
             }
             
             // 2. Fetch real Amadeus hotels for this new location!
-            homeViewModel.testAmadeus(lat: coordinate.latitude, lon: coordinate.longitude)
+            let cityName = response?.mapItems.first?.name ?? authViewModel.currentUser?.city ?? "Explore"
+            homeViewModel.testAmadeus(lat: coordinate.latitude, lon: coordinate.longitude, userCity: cityName)
+            
             isSearching = false
         }
     }
@@ -110,6 +112,7 @@ struct DealsMapView: View {
         // If we have GPS, use it, otherwise use Mechelen
         let lat = locationManager.userLocation?.coordinate.latitude ?? 51.0259
         let lon = locationManager.userLocation?.coordinate.longitude ?? 4.4776
-        homeViewModel.testAmadeus(lat: lat, lon: lon)
+        let cityName = authViewModel.currentUser?.city ?? "Brussels"
+        homeViewModel.testAmadeus(lat: lat, lon: lon, userCity: cityName)
     }
 }

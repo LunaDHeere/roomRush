@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import CoreLocation
 
 struct OnboardingView: View {
     @EnvironmentObject var viewModel: AuthViewModel
@@ -9,58 +10,44 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
-            LinearGradient(gradient: Gradient(colors: [Color(red: 0.95, green: 0.97, blue: 1.0), .white]),
-                           startPoint: .top,
-                           endPoint: .bottom)
-                .ignoresSafeArea()
+            LinearGradient(
+                gradient: Gradient(colors: [Color(red: 0.95, green: 0.97, blue: 1.0), .white]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // MARK: - Progress Indicator
-                HStack(spacing: 8) {
-                    ForEach(1...2, id: \.self) { num in
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(num <= step ? Color.blue : Color.gray.opacity(0.2))
-                            .frame(width: num == step ? 32 : 32, height: 6)
-                            .animation(.spring(), value: step)
-                    }
-                }
-                .padding(.top, 20)
+                progressIndicator
                 
                 VStack(alignment: .leading, spacing: 0) {
-                    if step == 1 {
-                        nameStep
-                    } else {
-                        locationStep
-                    }
+                    if step == 1 { nameStep }
+                    else { locationStep }
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 40)
                 
                 Spacer()
                 
-                // MARK: - Bottom Button
-                Button(action: {
-                    if step == 1 {
-                        step = 2
-                    } else {
-                        completeOnboarding()
-                    }
-                }) {
-                    Text(step == 1 ? "Continue" : "Get Started")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(isButtonDisabled ? Color.blue.opacity(0.5) : Color.blue)
-                        .cornerRadius(16)
-                }
-                .disabled(isButtonDisabled)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 30)
+                bottomButton
             }
         }
     }
     
+    // MARK: - Progress Indicator
+    private var progressIndicator: some View {
+        HStack(spacing: 8) {
+            ForEach(1...2, id: \.self) { num in
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(num <= step ? Color.blue : Color.gray.opacity(0.2))
+                    .frame(width: 32, height: 6)
+                    .animation(.spring(), value: step)
+            }
+        }
+        .padding(.top, 20)
+    }
+    
+    // MARK: - Step 1: Name
     private var nameStep: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Let's get to know you")
@@ -85,10 +72,11 @@ struct OnboardingView: View {
             .frame(height: 56)
             .background(Color.white)
             .cornerRadius(16)
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.2)))
         }
     }
     
+    // MARK: - Step 2: Location
     private var locationStep: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Where is home?")
@@ -109,13 +97,10 @@ struct OnboardingView: View {
             .frame(height: 56)
             .background(Color.white)
             .cornerRadius(16)
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.2)))
             
-            Button(action: {
-                locationManager.requestLocation()
-            }) {
+            Button(action: locationManager.requestLocation) {
                 HStack {
-                    // FIX: Removed $ from locationManager checks
                     if locationManager.city.isEmpty && !locationManager.isLoading {
                         Image(systemName: "location.fill")
                         Text("Use Current Location")
@@ -134,33 +119,41 @@ struct OnboardingView: View {
                 .frame(height: 56)
                 .background(Color.white)
                 .cornerRadius(16)
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.2)))
             }
             .padding(.top, 10)
         }
-        .onChange(of: locationManager.city) { oldValue, newCity in
-            if !newCity.isEmpty {
-                self.location = newCity
-            }
+        .onChange(of: locationManager.city) { _, newCity in
+            if !newCity.isEmpty { location = newCity }
         }
+    }
+    
+    // MARK: - Bottom Button
+    private var bottomButton: some View {
+        Button(action: {
+            if step == 1 { step = 2 }
+            else { completeOnboarding() }
+        }) {
+            Text(step == 1 ? "Continue" : "Get Started")
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(isButtonDisabled ? Color.blue.opacity(0.5) : Color.blue)
+                .cornerRadius(16)
+        }
+        .disabled(isButtonDisabled)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 30)
     }
     
     private var isButtonDisabled: Bool {
         if step == 1 { return viewModel.fullname.isEmpty }
-        // Let them continue if they typed manually OR if GPS found something
         return location.isEmpty && locationManager.city.isEmpty
     }
     
     private func completeOnboarding() {
-        if var updatedUser = viewModel.currentUser {
-            updatedUser.fullname = viewModel.fullname
-            updatedUser.city = self.location
-            updatedUser.hasCompletedOnboarding = true
-            viewModel.currentUser = updatedUser
-            viewModel.saveUserToFirestore(updatedUser)
-        }
-        withAnimation {
-            viewModel.completedOnboarding = true
-        }
+        // Update UI immediately, Firestore async
+        viewModel.completeOnboarding(fullname: viewModel.fullname, city: location)
     }
 }

@@ -26,7 +26,7 @@ struct FavouritesView: View {
                 .padding()
                 .background(Color.white)
                 .shadow(color: .black.opacity(0.02), radius: 5, y: 2)
-
+                
                 if favoriteDeals.isEmpty {
                     // MARK: - Empty State
                     VStack(spacing: 20) {
@@ -80,7 +80,10 @@ struct FavouritesView: View {
         }
         .background(Color(red: 0.98, green: 0.98, blue: 0.99))
         .onAppear {
-            homeVM.testAmadeus(lat: 51.0259, lon: 4.4776)
+            let cityName = authVM.currentUser?.city ?? "Brussels"
+            
+            // Pass all 3 arguments now: lat, lon, and userCity
+            homeVM.testAmadeus(lat: 51.0259, lon: 4.4776, userCity: cityName)
         }
     }
 }

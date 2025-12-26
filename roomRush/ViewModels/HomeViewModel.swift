@@ -1,71 +1,35 @@
-
 import Foundation
 import FirebaseFirestore
-import Combine
 import SwiftUI
+import Combine
 
-@MainActor
+@MainActor // This protects the whole class from thread crashes
 class HomeViewModel: ObservableObject {
     @Published var deals = [Deal]()
-    @Published var isLoading = false
-    @Published var showNotification = true
-    @Published var lastFetchTime : Date?
     @Published var allDeals = [Deal]()
+    @Published var isLoading = false
+    @Published var lastFetchTime: Date? = nil // Simple optional
     @Published var selectedFilter = "All Deals"
+    @Published var showNotification = true
     
     private let apiManager = APIManager()
     private let db = Firestore.firestore()
-    
-    
-    func fetchDeals() {
+
+    func testAmadeus(lat: Double, lon: Double, userCity: String) {
         self.isLoading = true
-        
-        db.collection("deals").getDocuments { snapshot, error in
-            Task { @MainActor in
-                self.isLoading = false
-                if let error = error {
-                    print("Error fetching deals: \(error.localizedDescription)")
-                    return
-                }
-                
-                self.deals = snapshot?.documents.compactMap { document in
-                    try? document.data(as: Deal.self)
-                } ?? []
-            }
-        }
-    }
-    func applyFilter(_ filter: String) {
-        self.selectedFilter = filter
-        
-        switch filter {
-        case "Under $100":
-            self.deals = allDeals.filter { $0.price < 100 }
-        case "Hotels":
-            self.deals = allDeals.filter { $0.type == "Hotel" }
-        case "Hostels":
-            // Note: Amadeus mostly returns Hotels, so this might be empty unless you seed it
-            self.deals = allDeals.filter { $0.type == "Hostel" }
-        default:
-            self.deals = allDeals // "All Deals" shows everything
-        }
-    }
-    
-    func testAmadeus(lat: Double, lon: Double) {
-        self.isLoading = true
-        self.deals.removeAll()
+        print("DEBUG: Fetching Amadeus hotels...")
         
         Task {
             do {
                 let amadeusHotels = try await apiManager.fetchHotels(lat: lat, lon: lon)
                 
-                // This is the magic part: turning Amadeus data into RoomRush Deals
                 let fetchedDeals = amadeusHotels.map { hotel in
                     Deal(
                         id: hotel.hotelId,
                         title: hotel.name,
                         roomName: "Last-Minute Special",
-                        locationName: "Mechelen",
-                        price: Int.random(in: 85...140), // Real pricing needs a 2nd API call, so we use random for now
+                        locationName: userCity,
+                        price: Int.random(in: 85...140),
                         originalPrice: Int.random(in: 160...210),
                         roomsLeft: Int.random(in: 1...4),
                         rating: Double.random(in: 4.1...4.8),
@@ -75,20 +39,35 @@ class HomeViewModel: ObservableObject {
                         longitude: hotel.geoCode.longitude
                     )
                 }
-                self.lastFetchTime = Date()
-                self.isLoading = false
+                
                 self.allDeals = fetchedDeals
                 self.deals = fetchedDeals
-                print("✅ UI Updated with \(self.deals.count) real hotels!")
+                self.lastFetchTime = Date()
+                self.isLoading = false
+                print("✅ Successfully loaded \(self.deals.count) hotels")
+                
             } catch {
-                print("❌ Error mapping data: \(error)")
+                print("❌ API Error: \(error.localizedDescription)")
                 self.isLoading = false
             }
         }
-        
     }
-    
+
+    func applyFilter(_ filter: String) {
+        self.selectedFilter = filter
+        switch filter {
+        case "Under $100":
+            self.deals = allDeals.filter { $0.price < 100 }
+        case "Hotels":
+            self.deals = allDeals.filter { $0.type == "Hotel" }
+        case "Hostels":
+            self.deals = allDeals.filter { $0.type == "Hostel" }
+        default:
+            self.deals = allDeals
+        }
+    }
 }
+
 extension Date {
     func timeAgo() -> String {
         let formatter = RelativeDateTimeFormatter()
