@@ -8,6 +8,7 @@ struct OnboardingView: View {
     @State private var step = 1
     @State private var location = ""
     
+    
     var body: some View {
         ZStack {
             LinearGradient(

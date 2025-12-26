@@ -2,6 +2,7 @@ import Foundation
 import FirebaseFirestore
 import SwiftUI
 import Combine
+import CoreData
 
 @MainActor
 class HomeViewModel: ObservableObject {
@@ -13,6 +14,7 @@ class HomeViewModel: ObservableObject {
     @Published var showNotification = true
     
     private let apiManager = APIManager()
+    private let container = PersistenceController.shared.container
     
     func fetchDeals(lat: Double, lon: Double, city: String) async {
         self.isLoading = true
@@ -39,6 +41,7 @@ class HomeViewModel: ObservableObject {
                     longitude: hotel.geoCode.longitude
                 )
             }
+            saveToCoreData(fetchedDeals)
             
             // 3. Update state
             self.allDeals = fetchedDeals
@@ -48,43 +51,94 @@ class HomeViewModel: ObservableObject {
         } catch {
             print("❌ API Error: \(error.localizedDescription)")
             
-            // FALLBACK: If the API fails (like your current Quota Limit error),
-            // we load this "Mock" data so you can still present your app for your exam.
-            let fallbackDeals = [
-                Deal(
-                    id: "OFFLINE_1",
-                    title: "Grand Hotel Mechelen (Exam Fallback)",
-                    roomName: "Deluxe Suite",
-                    locationName: city,
-                    price: 99,
-                    originalPrice: 190,
-                    roomsLeft: 2,
-                    rating: 4.7,
-                    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
-                    type: "Hotel",
-                    latitude: lat,
-                    longitude: lon
-                ),
-                Deal(
-                    id: "OFFLINE_2",
-                    title: "River Hostel",
-                    roomName: "Dormitory",
-                    locationName: city,
-                    price: 45,
-                    originalPrice: 65,
-                    roomsLeft: 5,
-                    rating: 4.2,
-                    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
-                    type: "Hostel",
-                    latitude: lat + 0.005,
-                    longitude: lon + 0.005
-                )
-            ]
+            loadFromCoreData()
             
-            self.allDeals = fallbackDeals
-            self.applyFilter(selectedFilter)
+            if allDeals.isEmpty{
+                print("⚠️ No cached data. Generating random exam deals...")
+                generateRandomMockDeals(lat: lat, lon: lon, city: city)
+            }
         }
     }
+    
+    private func saveToCoreData(_ fetchedDeals: [Deal]) {
+            let context = container.viewContext
+            let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CachedDeal.fetchRequest()
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            
+            do {
+                try context.execute(deleteRequest) // Clear old cache
+                for deal in fetchedDeals {
+                    let cached = CachedDeal(context: context)
+                    cached.id = deal.id
+                    cached.title = deal.title
+                    cached.roomName = deal.roomName
+                    cached.locationName = deal.locationName
+                    cached.price = Double(deal.price)
+                    cached.originalPrice = Double(deal.originalPrice)
+                    cached.roomsLeft = Int64(deal.roomsLeft)
+                    cached.rating = deal.rating
+                    cached.imageUrl = deal.imageUrl
+                    cached.type = deal.type
+                    cached.latitude = deal.latitude
+                    cached.longitude = deal.longitude
+                }
+                try context.save()
+            } catch {
+                print("❌ Core Data Save Error: \(error.localizedDescription)")
+            }
+        }
+
+        private func loadFromCoreData() {
+            let context = container.viewContext
+            let request: NSFetchRequest<CachedDeal> = CachedDeal.fetchRequest()
+            do {
+                let results = try context.fetch(request)
+                self.allDeals = results.map { cached in
+                    Deal(
+                        id: cached.id ?? UUID().uuidString,
+                        title: cached.title ?? "Unknown",
+                        roomName: cached.roomName ?? "Standard Room",
+                        locationName: cached.locationName ?? "Nearby",
+                        price: Int(cached.price),
+                        originalPrice: Int(cached.originalPrice),
+                        roomsLeft: Int(cached.roomsLeft),
+                        rating: cached.rating,
+                        imageUrl: cached.imageUrl ?? "",
+                        type: cached.type ?? "Hotel",
+                        latitude: cached.latitude,
+                        longitude: cached.longitude
+                    )
+                }
+                self.applyFilter(selectedFilter)
+            } catch {
+                print("❌ Core Data Load Error")
+            }
+        }
+
+        // MARK: - Random Exam Fallback
+        private func generateRandomMockDeals(lat: Double, lon: Double, city: String) {
+            let hotelNames = ["Grand \(city) Inn", "The \(city) Plaza", "Riverside Suites", "Urban Nomad Hostel", "Blue Harbor Hotel"]
+            
+            let mockDeals = hotelNames.indices.map { i in
+                let original = Int.random(in: 150...250)
+                return Deal(
+                    id: "MOCK_\(i)",
+                    title: hotelNames[i],
+                    roomName: "Exam Fallback Room",
+                    locationName: city,
+                    price: Int(Double(original) * 0.6), // 40% discount
+                    originalPrice: original,
+                    roomsLeft: Int.random(in: 1...5),
+                    rating: Double.random(in: 4.0...4.9),
+                    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
+                    type: i == 3 ? "Hostel" : "Hotel",
+                    latitude: lat + (Double.random(in: -0.01...0.01)),
+                    longitude: lon + (Double.random(in: -0.01...0.01))
+                )
+            }
+            self.allDeals = mockDeals
+            self.applyFilter(selectedFilter)
+        }
 
     func applyFilter(_ filter: String) {
         self.selectedFilter = filter
