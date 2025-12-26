@@ -11,7 +11,6 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                if viewModel.showNotification { NotificationBanner() }
                 
                 HeaderSection(
                     city: authViewModel.currentUser?.city ?? "Locating...",

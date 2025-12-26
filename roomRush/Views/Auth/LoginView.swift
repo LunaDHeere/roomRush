@@ -32,7 +32,7 @@ struct LoginView: View {
                             VStack(spacing: 4) {
                                 Text("roomRush")
                                     .font(.system(size: 32, weight: .semibold))
-                                    .foregroundColor(.gray.opacity(0.9))
+                                    .foregroundColor(.black.opacity(0.9))
                                 
                                 Text("Find your room, right now")
                                     .font(.subheadline)
@@ -77,11 +77,13 @@ struct LoginView: View {
                                     Group{
                                         if showPassword {
                                             TextField("••••••••", text: $viewModel.password)
+                                                .foregroundColor(.black)
                                         } else {
                                             SecureField("••••••••", text: $viewModel.password)
+                                                .foregroundColor(.blue)
                                         }
                                     }
-                                    .foregroundColor(.black)
+                                    .foregroundColor(.blue)
                                     .disableAutocorrection(true)
                                     
                                     Button(action: { showPassword.toggle() }) {
@@ -117,17 +119,6 @@ struct LoginView: View {
                                     .frame(height: 50)
                                     .background(Color.blue)
                                     .cornerRadius(12)
-                            }
-                            
-                            Button(action: { /* Guest logic */ }) {
-                                Text("Continue as Guest")
-                                    .font(.headline)
-                                    .foregroundColor(.black)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
-                                    .background(Color.white)
-                                    .cornerRadius(12)
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                             }
                         }
                         

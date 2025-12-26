@@ -4,58 +4,75 @@ struct FavouritesView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var homeVM : HomeViewModel
     
-    var favoriteDeals: [Deal] {
-        let favoriteIds = authVM.currentUser?.favourites ?? []
-        return homeVM.deals.filter { favoriteIds.contains($0.id) }
-    }
-    
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                favouritesHeader
-                
-                if favoriteDeals.isEmpty {
-                    emptyStateView
-                } else {
-                    favouritesList
+    @State private var selectedFilter = "All Deals"
+    var filteredFavorites: [Deal] {
+            let favoriteIds = authVM.currentUser?.favourites ?? []
+            let baseFavorites = homeVM.deals.filter { favoriteIds.contains($0.id) }
+            
+            switch selectedFilter {
+            case "Under $100":
+                return baseFavorites.filter { $0.price < 100 }
+            case "Hotels":
+                return baseFavorites.filter { $0.type == "Hotel" }
+            case "Hostels":
+                return baseFavorites.filter { $0.type == "Hostel" }
+            default:
+                return baseFavorites
+            }
+        }
+        
+        var body: some View {
+            ScrollView {
+                VStack(spacing: 0) {
+                    favouritesHeader
+                    
+                    // Reuse your existing FilterSection component
+                    FilterSection(selectedFilter: $selectedFilter) { newFilter in
+                        selectedFilter = newFilter
+                    }
+                    
+                    if filteredFavorites.isEmpty {
+                        emptyStateView
+                    } else {
+                        favouritesList
+                    }
+                }
+            }
+            .background(Color(red: 0.98, green: 0.98, blue: 0.99))
+            .task {
+                if homeVM.deals.isEmpty {
+                    let city = authVM.currentUser?.city ?? "Mechelen"
+                    await homeVM.fetchDeals(lat: 51.0259, lon: 4.4776, city: city)
                 }
             }
         }
-        .background(Color(red: 0.98, green: 0.98, blue: 0.99))
-        .task {
-            if homeVM.deals.isEmpty {
-                let city = authVM.currentUser?.city ?? "Mechelen"
-                // Use dummy coordinates for Mechelen
-                await homeVM.fetchDeals(lat: 51.0259, lon: 4.4776, city: city)
+        
+        private var favouritesHeader: some View {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Saved Deals").font(.system(size: 24, weight: .bold))
+                // Count now reflects the filtered result
+                Text("\(filteredFavorites.count) \(filteredFavorites.count == 1 ? "room" : "rooms") matching")
+                    .font(.system(size: 14)).foregroundColor(.gray)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.white)
+            .shadow(color: .black.opacity(0.02), radius: 5, y: 2)
         }
-    }
-    
-    private var favouritesHeader: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Saved Deals").font(.system(size: 24, weight: .bold))
-            Text("\(favoriteDeals.count) \(favoriteDeals.count == 1 ? "room" : "rooms") saved")
-                .font(.system(size: 14)).foregroundColor(.gray)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Color.white)
-        .shadow(color: .black.opacity(0.02), radius: 5, y: 2)
-    }
-    
-    private var favouritesList: some View {
-        LazyVStack(spacing: 16) {
-            ForEach(favoriteDeals) { deal in
-                DealCardView(
-                    deal: deal,
-                    isFavourited: true, // They are in this list because they are favorited
-                    onToggleFavourite: { authVM.toggleFavourite(dealId: deal.id) }
-                )
+        
+        private var favouritesList: some View {
+            LazyVStack(spacing: 16) {
+                ForEach(filteredFavorites) { deal in
+                    DealCardView(
+                        deal: deal,
+                        isFavourited: true,
+                        onToggleFavourite: { authVM.toggleFavourite(dealId: deal.id) }
+                    )
+                }
+                offlineNotice
             }
-            offlineNotice
+            .padding()
         }
-        .padding()
-    }
     
     private var emptyStateView: some View {
         VStack(spacing: 20) {

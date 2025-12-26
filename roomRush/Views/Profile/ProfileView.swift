@@ -90,7 +90,6 @@ struct ProfileView: View {
                         }
                         
                         MenuSection(title: "Preferences") {
-                            MenuItem(icon: "bell", label: "Notifications", badge: "3")
                             MenuItem(icon: "gearshape", label: "App Settings")
                         }
                         

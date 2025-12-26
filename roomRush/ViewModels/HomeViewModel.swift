@@ -74,7 +74,7 @@ class HomeViewModel: ObservableObject {
                     originalPrice: 65,
                     roomsLeft: 5,
                     rating: 4.2,
-                    imageUrl: "https://images.unsplash.com/photo-1555854816-808226a3f14b?auto=format&fit=crop&w=800&q=80",
+                    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
                     type: "Hostel",
                     latitude: lat + 0.005,
                     longitude: lon + 0.005

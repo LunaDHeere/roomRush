@@ -46,9 +46,10 @@ struct DealCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(deal.title)
                             .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.black)
                         Text(deal.roomName)
                             .font(.system(size: 14))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.gray)
                     }
                     Spacer()
                     ratingBadge
@@ -56,7 +57,7 @@ struct DealCardView: View {
                 
                 Label("\(String(format: "%.1f", distance)) km away", systemImage: "mappin.circle")
                     .font(.system(size: 13))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.gray)
                 
                 priceRow
             }
@@ -96,12 +97,12 @@ struct DealCardView: View {
     private var priceRow: some View {
         HStack(alignment: .bottom, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text("$\(deal.price)").font(.system(size: 24, weight: .bold))
-                Text("/night").font(.system(size: 14)).foregroundColor(.secondary)
+                Text("$\(deal.price)").font(.system(size: 24, weight: .bold)).foregroundColor(.gray)
+                Text("/night").font(.system(size: 14)).foregroundColor(.gray)
             }
             Text("$\(deal.originalPrice)")
                 .font(.system(size: 14))
-                .foregroundColor(.secondary)
+                .foregroundColor(.gray)
                 .strikethrough()
                 .padding(.bottom, 2)
         }

@@ -45,11 +45,13 @@ struct DealsMapView: View {
                 Image(systemName: "magnifyingglass").foregroundColor(.gray)
                 TextField("Search for a city", text: $searchText)
                     .onSubmit { performSearch() }
+                    .foregroundColor(.black)
                 
                 if !searchText.isEmpty {
                     Button { searchText = "" } label: {
                         Image(systemName: "xmark.circle.fill").foregroundColor(.gray)
                     }
+                    .foregroundColor(.black)
                 }
             }
             .padding()
