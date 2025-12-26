@@ -150,17 +150,6 @@ struct LoginView: View {
                             .foregroundColor(.gray)
                         }
                         .padding(.top, 20)
-                        
-                        #if DEBUG
-                        NavigationLink {
-                            AdminSeedView()
-                        } label: {
-                            Text("Admin • Seed Database")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .padding(.top, 12)
-                        #endif
                     }
                     .padding(.horizontal, 24)
                 }

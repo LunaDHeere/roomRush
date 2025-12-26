@@ -6,8 +6,7 @@ class APIManager: ObservableObject {
     private let apiKey = "NEaU5esMuHjZGBSHTtGrtbZoA9D2RSDi"
     private let apiSecret = "QSa6KF0TPxl9DPSx"
     private var accessToken: String?
-
-    // Step 1: Get the Token
+    
     func getAccessToken() async throws -> String {
         if let token = accessToken { return token } // Return existing if valid
         
@@ -25,12 +24,13 @@ class APIManager: ObservableObject {
         self.accessToken = response.access_token
         return response.access_token
     }
-
+    
     // Step 2: Fetch Hotels by GPS
     func fetchHotels(lat: Double, lon: Double) async throws -> [AmadeusHotel] {
         let token = try await getAccessToken()
         
-        let urlString = "https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-geocode?latitude=\(lat)&longitude=\(lon)&radius=5&radiusUnit=KM"
+        // We force coordinates to 4 decimal places as some APIs are picky
+        let urlString = "https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-geocode?latitude=\(String(format: "%.4f", lat))&longitude=\(String(format: "%.4f", lon))&radius=5&radiusUnit=KM"
         
         guard let url = URL(string: urlString) else { return [] }
         
@@ -38,21 +38,26 @@ class APIManager: ObservableObject {
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
         
-        // Attempt to decode
-        let response = try JSONDecoder().decode(HotelResponse.self, from: data)
-        
-        // --- TEST LOGS ---
-        print("--- AMADEUS TEST START ---")
-        print("Found \(response.data.count) hotels near you.")
-        for hotel in response.data {
-            print("🏨 Name: \(hotel.name) | ID: \(hotel.hotelId)")
+        // Check for HTTP errors (like 400 or 401) before decoding
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            let errorBody = String(data: data, encoding: .utf8) ?? "Unknown Error"
+            print("❌ Server Error (\(httpResponse.statusCode)): \(errorBody)")
         }
-        print("--- AMADEUS TEST END ---")
-        // -----------------
         
-        return response.data
+        do {
+            let response = try JSONDecoder().decode(HotelResponse.self, from: data)
+            print("✅ Successfully decoded \(response.data.count) hotels")
+            return response.data
+        } catch {
+            // This is the magic line: it prints what the API ACTUALLY sent
+            if let rawJSON = String(data: data, encoding: .utf8) {
+                print("❌ Raw JSON received: \(rawJSON)")
+            }
+            print("❌ Decoding Error: \(error)")
+            throw error
+        }
     }
 }
 
@@ -63,16 +68,22 @@ struct TokenResponse: Codable {
 
 struct HotelResponse: Codable {
     let data: [AmadeusHotel]
+    let meta: [String: AnyCodable]?
 }
 
 struct AmadeusHotel: Codable {
     let name: String
     let hotelId: String
     let geoCode: AmadeusGeoCode
-    
+    let address: AmadeusAddress?
     // We can use these to create our Deal objects
     struct AmadeusGeoCode: Codable {
         let latitude: Double
         let longitude: Double
     }
+    struct AmadeusAddress: Codable {
+            let cityName: String?
+        }
 }
+
+struct AnyCodable: Codable {}

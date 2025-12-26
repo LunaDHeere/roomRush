@@ -15,6 +15,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct roomRushApp: App {
     @StateObject var authViewModel = AuthViewModel()
+    @StateObject var homeViewModel = HomeViewModel()
     let persistenceController = PersistenceController.shared
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
@@ -22,6 +23,7 @@ struct roomRushApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(authViewModel)
+                .environmentObject(homeViewModel)
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
