@@ -11,27 +11,21 @@ struct ContentView: View {
                     // MAIN APP
                     TabView {
                         NavigationStack {HomeView() }
-                            .tabItem {
-                                Label("Deals", systemImage: "flame")
-                            }
-                        NavigationStack { ProfileView() }
-                            .tabItem {
-                                Label("Profile", systemImage: "person")
-                            }
+                            .tabItem { Label("Deals", systemImage: "flame") }
                         NavigationStack { FavouritesView() }
                             .tabItem { Label("Favourites", systemImage: "heart") }
-                        
+                        NavigationStack { DealsMapView() }
+                            .tabItem { Label("Explore", systemImage: "map") }
+                        NavigationStack { ProfileView() }
+                            .tabItem { Label("Profile", systemImage: "person") }
                     }
                 } else {
-                    // FIX: SHOW ONBOARDING IF NOT COMPLETED
                     OnboardingView()
                 }
             } else {
-                // LANDING PAGE
                 LoginView(viewModel: authViewModel)
             }
         }
-        // Add animations to make the transitions smooth
         .animation(.easeInOut, value: authViewModel.isAuthenticated)
         .animation(.easeInOut, value: authViewModel.completedOnboarding)
     }

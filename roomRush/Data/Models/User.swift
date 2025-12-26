@@ -9,6 +9,7 @@ struct User: Codable, Identifiable {
     var totalSavedMoney: String = "$0"
     var favourites : [String] = []
     var hasCompletedOnboarding: Bool = false
+    var city: String = ""
     
     var initials: String {
         let formatter = PersonNameComponentsFormatter()

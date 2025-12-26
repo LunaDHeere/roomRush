@@ -1,12 +1,15 @@
 import SwiftUI
 import Combine
 import Kingfisher
+import Foundation
 
 struct HomeView: View {
     @StateObject var viewModel = HomeViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
-
-
+    
+    @State private var timeAgoText: String = "just now"
+    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -40,7 +43,7 @@ struct HomeView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "mappin.and.ellipse")
                             .foregroundColor(.blue)
-                        Text("San Francisco, CA")
+                        Text(authViewModel.currentUser?.city ?? "location can't be found.")
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
                     }
@@ -50,7 +53,7 @@ struct HomeView: View {
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.black)
                     
-                    Text("Available rooms near you • Updated 2 min ago")
+                    Text("Available rooms near you • Updated \(timeAgoText)")
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
                 }
@@ -61,19 +64,28 @@ struct HomeView: View {
                 .shadow(color: .black.opacity(0.03), radius: 5, y: 2)
                 
                 // MARK: - Filter Chips
+                let categories = ["All Deals", "Hotels", "Hostels", "Under $100"]
+
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        FilterChipView(title: "All Deals", isActive: true)
-                        FilterChipView(title: "Hotels")
-                        FilterChipView(title: "Hostels")
-                        FilterChipView(title: "Under $100")
-                        FilterChipView(title: "Nearby")
+                        ForEach(categories, id: \.self) { category in
+                            FilterChipView(
+                                title: category,
+                                isActive: viewModel.selectedFilter == category
+                            )
+                            .onTapGesture {
+                                // This makes the transition look smooth!
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    viewModel.applyFilter(category)
+                                }
+                            }
+                        }
                     }
                     .padding(.horizontal, 16)
                 }
                 .padding(.vertical, 16)
                 
-                // MARK: - Deals Grid (List)
+                // MARK: - Deals Grid
                 if viewModel.isLoading {
                     ProgressView().padding(.top, 50)
                 } else {
@@ -89,7 +101,23 @@ struct HomeView: View {
         }
         .background(Color(red: 0.97, green: 0.97, blue: 0.98))
         .onAppear {
-            viewModel.fetchDeals()
+            if let _ = authViewModel.currentUser?.city {
+                viewModel.testAmadeus(lat: 51.0259, lon: 4.4776)
+            }
+            updateTimeText()
+        }
+        .onReceive(timer) { _ in
+            updateTimeText()
+        }
+        .onChange(of: viewModel.deals.count) { oldValue, newValue in
+            updateTimeText()
+        }
+    }
+    private func updateTimeText() {
+        if let lastFetch = viewModel.lastFetchTime {
+            timeAgoText = lastFetch.timeAgo()
+        } else {
+            timeAgoText = "just now"
         }
     }
 }
@@ -229,4 +257,5 @@ struct DealCardView: View {
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
     }
+    
 }

@@ -1,14 +1,14 @@
 import SwiftUI
-import CoreLocation
+import Combine
 
 struct OnboardingView: View {
     @EnvironmentObject var viewModel: AuthViewModel
+    @StateObject var locationManager = LocationManager()
     @State private var step = 1
     @State private var location = ""
     
     var body: some View {
         ZStack {
-            // Background Gradient
             LinearGradient(gradient: Gradient(colors: [Color(red: 0.95, green: 0.97, blue: 1.0), .white]),
                            startPoint: .top,
                            endPoint: .bottom)
@@ -26,7 +26,6 @@ struct OnboardingView: View {
                 }
                 .padding(.top, 20)
                 
-                // MARK: - Content Area
                 VStack(alignment: .leading, spacing: 0) {
                     if step == 1 {
                         nameStep
@@ -62,13 +61,10 @@ struct OnboardingView: View {
         }
     }
     
-    // MARK: - Sub-Steps
-    
     private var nameStep: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Let's get to know you")
                 .font(.system(size: 32, weight: .semibold))
-                .foregroundColor(.black)
             
             Text("Your name helps us personalize your experience.")
                 .font(.subheadline)
@@ -97,7 +93,6 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Where is home?")
                 .font(.system(size: 32, weight: .semibold))
-                .foregroundColor(.black)
             
             Text("Tell us your preferred city so we can find the best rooms near you.")
                 .font(.subheadline)
@@ -117,12 +112,21 @@ struct OnboardingView: View {
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.2), lineWidth: 1))
             
             Button(action: {
-                self.location = "Current Location"
-                // In a real app, you'd trigger CoreLocation here
+                locationManager.requestLocation()
             }) {
                 HStack {
-                    Image(systemName: "location.fill")
-                    Text("Use Current Location")
+                    // FIX: Removed $ from locationManager checks
+                    if locationManager.city.isEmpty && !locationManager.isLoading {
+                        Image(systemName: "location.fill")
+                        Text("Use Current Location")
+                    } else if !locationManager.city.isEmpty {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Found: \(locationManager.city)")
+                    } else {
+                        ProgressView()
+                            .padding(.trailing, 5)
+                        Text("Locating...")
+                    }
                 }
                 .font(.headline)
                 .foregroundColor(.blue)
@@ -134,19 +138,27 @@ struct OnboardingView: View {
             }
             .padding(.top, 10)
         }
+        .onChange(of: locationManager.city) { oldValue, newCity in
+            if !newCity.isEmpty {
+                self.location = newCity
+            }
+        }
     }
     
     private var isButtonDisabled: Bool {
         if step == 1 { return viewModel.fullname.isEmpty }
-        return location.isEmpty
+        // Let them continue if they typed manually OR if GPS found something
+        return location.isEmpty && locationManager.city.isEmpty
     }
     
     private func completeOnboarding() {
         if var updatedUser = viewModel.currentUser {
-                updatedUser.fullname = viewModel.fullname
-                viewModel.currentUser = updatedUser
-            }
-        viewModel.saveUserToFirestore(viewModel.currentUser!)
+            updatedUser.fullname = viewModel.fullname
+            updatedUser.city = self.location
+            updatedUser.hasCompletedOnboarding = true
+            viewModel.currentUser = updatedUser
+            viewModel.saveUserToFirestore(updatedUser)
+        }
         withAnimation {
             viewModel.completedOnboarding = true
         }

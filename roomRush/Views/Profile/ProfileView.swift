@@ -2,6 +2,9 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var viewModel: AuthViewModel
+    @State private var isEditing = false
+    @State private var editedName = ""
+    @State private var editedEmail = ""
     
     var body: some View {
         ScrollView {
@@ -18,11 +21,11 @@ struct ProfileView: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(Color.blue.opacity(0.2))
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
-                        .padding(.top, 20)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+                            .padding(.top, 20)
                     )
-
+                
                 VStack(spacing: 20) {
                     // MARK: - Profile Card
                     HStack(spacing: 15) {
@@ -31,35 +34,58 @@ struct ProfileView: View {
                             .frame(width: 65, height: 65)
                             .overlay(Text(viewModel.currentUser?.initials ?? "??").foregroundColor(.white).bold())
                         
-                        VStack(alignment: .leading) {
-                            Text(viewModel.currentUser?.fullname ?? "Guest User")
-                                .font(.headline)
-                                .foregroundColor(.black)
-                            Text(viewModel.currentUser?.email ?? "email@example.com")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                        VStack(alignment: .leading, spacing: 5) {
+                            if isEditing {
+                                TextField("Full Name", text: $editedName)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .font(.headline)
+                                
+                                TextField("Email", text: $editedEmail)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .font(.subheadline)
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                            } else {
+                                Text(viewModel.currentUser?.fullname ?? "Guest User")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                Text(viewModel.currentUser?.email ?? "email@example.com")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
                         }
+                        
                         Spacer()
-                        Button("Edit") {}.foregroundColor(.blue).font(.subheadline)
+                        
+                        // Edit / Save Button
+                        Button(action: {
+                            if isEditing {
+                                // Save logic
+                                viewModel.updateUserInfo(newName: editedName, newEmail: editedEmail)
+                                isEditing = false
+                            } else {
+                                // Start editing: populate the fields with current data
+                                editedName = viewModel.currentUser?.fullname ?? ""
+                                editedEmail = viewModel.currentUser?.email ?? ""
+                                isEditing = true
+                            }
+                        }) {
+                            Text(isEditing ? "Save" : "Edit")
+                                .foregroundColor(.blue)
+                                .font(.subheadline)
+                                .bold()
+                        }
                     }
                     .padding()
                     .background(Color.white)
                     .cornerRadius(20)
                     .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
                     .padding(.top, -35)
-
-                    // MARK: - Stats
-                    HStack(spacing: 12) {
-                        StatCard(value: "\(viewModel.currentUser?.bookingsCount ?? 0)", label: "Bookings")
-                        StatCard(value: "\(viewModel.currentUser?.savedCount ?? 0)", label: "Saved")
-                        StatCard(value: viewModel.currentUser?.totalSavedMoney ?? "$0", label: "Saved")
-                    }
-
+                    
                     // MARK: - Menu
                     VStack(spacing: 15) {
                         MenuSection(title: "Account") {
                             MenuItem(icon: "person", label: "Personal Information")
-                            MenuItem(icon: "creditcard", label: "Payment Methods")
                             MenuItem(icon: "mappin", label: "Saved Locations")
                         }
                         
@@ -69,7 +95,13 @@ struct ProfileView: View {
                         }
                         
                         MenuSection(title: "Support") {
-                            MenuItem(icon: "questionmark.circle", label: "Help & Support")
+                            MenuItem(icon: "questionmark.circle", label: "Help & Support") {
+                                // Replace this with your actual GitHub repo link
+                                if let url = URL(string: "https://github.com/LunaDHeere/roomRush") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }
+                            
                             MenuItem(icon: "rectangle.portrait.and.arrow.right", label: "Sign Out", isDanger: true) {
                                 viewModel.signOut()
                             }

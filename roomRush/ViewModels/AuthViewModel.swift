@@ -29,14 +29,18 @@ class AuthViewModel: ObservableObject {
             
             guard let userId = result?.user.uid else { return }
             
-            // New user starts with false
-            let newUser = User(id: userId, fullname: self.fullname, email: self.email, hasCompletedOnboarding: false)
+            // A brand new user always starts with hasCompletedOnboarding = false
+            let newUser = User(
+                id: userId,
+                fullname: self.fullname,
+                email: self.email,
+                hasCompletedOnboarding: false // Explicitly set this
+            )
             
-            self.saveUserToFirestore(newUser)
-            
+            // Reset the navigation flag before saving
             Task { @MainActor in
                 self.completedOnboarding = false
-                self.isAuthenticated = true
+                self.saveUserToFirestore(newUser)
             }
         }
     }
@@ -83,12 +87,26 @@ class AuthViewModel: ObservableObject {
     }
     
     // MARK: - Sign Out
+    // MARK: - Sign Out
     func signOut() {
-        try? Auth.auth().signOut()
-        isAuthenticated = false
-        currentUser = nil
+        do {
+            try Auth.auth().signOut()
+            
+            // Reset everything to factory settings
+            Task { @MainActor in
+                self.isAuthenticated = false
+                self.currentUser = nil
+                self.completedOnboarding = false 
+                self.email = ""
+                self.password = ""
+                self.fullname = ""
+                self.errorMessage = ""
+                print("DEBUG: User signed out and state reset.")
+            }
+        } catch {
+            print("DEBUG: Error signing out: \(error.localizedDescription)")
+        }
     }
-    
     // MARK: - Helpers
     private func showError(_ error: Error) {
         Task { @MainActor in
@@ -125,7 +143,39 @@ class AuthViewModel: ObservableObject {
             "favourites": user.favourites
         ])
     }
+    // Add this to your AuthViewModel class
+    func updateUserInfo(newName: String, newEmail: String) {
+        guard var user = currentUser else { return }
+        
+        // 1. Update Firestore Document
+        user.fullname = newName
+        user.email = newEmail
+        
+        db.collection("users").document(user.id).updateData([
+            "fullname": newName,
+            "email": newEmail
+        ]) { error in
+            if let error = error {
+                print("DEBUG: Error updating Firestore: \(error.localizedDescription)")
+                return
+            }
+            
+            Task { @MainActor in
+                self.currentUser = user
+            }
+        }
+        
+        // 2. Update Firebase Authentication Email
+        // Note: This usually requires a recent login to work for security reasons
+        Auth.auth().currentUser?.updateEmail(to: newEmail) { error in
+            if let error = error {
+                print("DEBUG: Error updating Auth Email: \(error.localizedDescription)")
+                // Optionally show this error to the user via self.errorMessage
+            }
+        }
+    }
 }
+
 
 // MARK: - Seed Database
 extension AuthViewModel {

@@ -80,7 +80,7 @@ struct FavouritesView: View {
         }
         .background(Color(red: 0.98, green: 0.98, blue: 0.99))
         .onAppear {
-            homeVM.fetchDeals()
+            homeVM.testAmadeus(lat: 51.0259, lon: 4.4776)
         }
     }
 }
