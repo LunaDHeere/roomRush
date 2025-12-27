@@ -45,6 +45,11 @@ class AuthViewModel: ObservableObject {
     
     // MARK: - Auth
     func signUp() {
+        guard !fullname.isEmpty else {
+                self.errorMessage = "Please enter your full name."
+                return
+            }
+        
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
             if let error = error {
                 DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
@@ -57,7 +62,7 @@ class AuthViewModel: ObservableObject {
                 id: uid,
                 fullname: self.fullname,
                 email: self.email,
-                hasCompletedOnboarding: false
+                hasCompletedOnboarding: true
             )
             
             DispatchQueue.main.async { self.completedOnboarding = false }

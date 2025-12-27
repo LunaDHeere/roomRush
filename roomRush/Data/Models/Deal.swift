@@ -1,5 +1,6 @@
 import Foundation
 import FirebaseFirestore
+import CoreLocation
 
 struct Deal: Identifiable, Codable, Sendable {
 
@@ -21,4 +22,19 @@ struct Deal: Identifiable, Codable, Sendable {
         guard originalPrice > 0 else { return 0 }
         return Int((Double(diff) / Double(originalPrice)) * 100)
     }
-}
+    
+    func distance(from userLat: Double, _ userLon: Double, useMiles: Bool) -> String {
+            let userLocation = CLLocation(latitude: userLat, longitude: userLon)
+            let hotelLocation = CLLocation(latitude: self.latitude, longitude: self.longitude)
+            
+            let distanceInMeters = userLocation.distance(from: hotelLocation)
+            
+            if useMiles {
+                let miles = distanceInMeters / 1609.34
+                return String(format: "%.1f miles away", miles)
+            } else {
+                let km = distanceInMeters / 1000.0
+                return String(format: "%.1f km away", km)
+            }
+        }
+    }

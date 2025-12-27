@@ -43,6 +43,24 @@ struct LoginView: View {
                         
                         // Form Fields
                         VStack(alignment: .leading, spacing: 20) {
+                            if isSignUp {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Full Name")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.gray)
+                                        
+                                        HStack {
+                                            Image(systemName: "person")
+                                                .foregroundColor(.gray)
+                                            TextField("John Doe", text: $viewModel.fullname)
+                                                .foregroundColor(.black)
+                                        }
+                                        .padding()
+                                        .background(Color.white)
+                                        .cornerRadius(12)
+                                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                                    }
+                                }
                             
                             // Email Field
                             VStack(alignment: .leading, spacing: 8) {

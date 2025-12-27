@@ -5,6 +5,10 @@ struct DealCardView: View {
     let deal: Deal
     let isFavourited: Bool
     let onToggleFavourite: () -> Void
+    let userLat: Double
+    let userLon: Double
+    
+    @AppStorage("useMiles") private var useMiles = false
     
     // Logic for randomized distance based on the hotel ID
     var distance: Double {
@@ -55,7 +59,7 @@ struct DealCardView: View {
                     ratingBadge
                 }
                 
-                Label("\(String(format: "%.1f", distance)) km away", systemImage: "mappin.circle")
+                Label(deal.distance(from: userLat, userLon, useMiles: useMiles), systemImage: "mappin.circle")
                     .font(.system(size: 13))
                     .foregroundColor(.gray)
                 
@@ -80,7 +84,7 @@ struct DealCardView: View {
             .padding(12)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
     }
-
+    
     private var ratingBadge: some View {
         HStack(spacing: 4) {
             Image(systemName: "star.fill").font(.system(size: 12))

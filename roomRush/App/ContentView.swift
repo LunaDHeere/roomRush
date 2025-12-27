@@ -32,8 +32,6 @@ struct ContentView: View {
                         NavigationStack { ProfileView() }
                             .tabItem { Label("Profile", systemImage: "person") }
                     }
-                } else {
-                    OnboardingView()
                 }
             } else {
                 // 3. Unauthenticated Flow

@@ -6,6 +6,8 @@ struct ProfileView: View {
     @State private var editedName = ""
     @State private var editedEmail = ""
     
+    @AppStorage("useMiles") private var useMiles = false
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -90,9 +92,28 @@ struct ProfileView: View {
                         }
                         
                         MenuSection(title: "Preferences") {
-                            MenuItem(icon: "gearshape", label: "App Settings")
+                            HStack {
+                                Image(systemName: "ruler")
+                                    .foregroundColor(.gray)
+                                    .frame(width: 25)
+                                
+                                Text("Distance Unit")
+                                    .foregroundColor(.black)
+                                
+                                Spacer()
+                                
+                                // The toggle tied to @AppStorage
+                                Toggle("", isOn: $useMiles)
+                                    .labelsHidden() // Removes the extra label space
+                                
+                                Text(useMiles ? "Miles" : "KM")
+                                    .font(.caption)
+                                    .bold()
+                                    .foregroundColor(.blue)
+                                    .frame(width: 35)
+                            }
+                            .padding()
                         }
-                        
                         MenuSection(title: "Support") {
                             MenuItem(icon: "questionmark.circle", label: "Help & Support") {
                                 // Replace this with your actual GitHub repo link

@@ -35,9 +35,9 @@ struct HomeView: View {
                     .padding(.top, 60) // Small gap from the top
                     .zIndex(1)
                     .transition(.asymmetric(
-                                insertion: .move(edge: .top).combined(with: .opacity),
-                                removal: .opacity
-                            ))
+                        insertion: .move(edge: .top).combined(with: .opacity),
+                        removal: .opacity
+                    ))
                     .onAppear {
                         // Optional: Auto-hide after 5 seconds
                         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
@@ -94,7 +94,9 @@ struct HomeView: View {
                 DealCardView(
                     deal: deal,
                     isFavourited: authViewModel.currentUser?.favourites.contains(deal.id) ?? false,
-                    onToggleFavourite: { authViewModel.toggleFavourite(dealId: deal.id) }
+                    onToggleFavourite: { authViewModel.toggleFavourite(dealId: deal.id) },
+                    userLat: locationManager.userLocation?.coordinate.latitude ?? 50.8503,
+                    userLon: locationManager.userLocation?.coordinate.longitude ?? 4.3517
                 )
             }
         }
