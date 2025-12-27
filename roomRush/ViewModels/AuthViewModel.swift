@@ -13,8 +13,35 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage = ""
     @Published var currentUser: User?
     @Published var completedOnboarding = false
+    @Published var isInitialLoading = true
     
     private let db = Firestore.firestore()
+    
+    private var cancellables = Set<AnyCancellable>()
+    private var authListenerHandle: AuthStateDidChangeListenerHandle?
+    
+    init() {
+            // 2. Assign the result to the handle to remove the warning
+            authListenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+                guard let self = self else { return }
+                
+                if let user = user {
+                    self.fetchUser(userId: user.uid)
+                } else {
+                    DispatchQueue.main.async {
+                        self.isAuthenticated = false
+                        self.currentUser = nil
+                        // Ensure splash screen ends if no user found
+                        self.isInitialLoading = false
+                    }
+                }
+            }
+        }
+    deinit {
+            if let handle = authListenerHandle {
+                Auth.auth().removeStateDidChangeListener(handle)
+            }
+        }
     
     // MARK: - Auth
     func signUp() {
@@ -83,6 +110,7 @@ class AuthViewModel: ObservableObject {
                     self.completedOnboarding = user.hasCompletedOnboarding
                     self.isAuthenticated = true
                 }
+                self.isInitialLoading = false
             }
         }
     }

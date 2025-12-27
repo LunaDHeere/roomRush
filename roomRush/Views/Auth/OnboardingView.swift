@@ -9,6 +9,8 @@ struct OnboardingView: View {
     @State private var location = ""
     
     
+    private var cancellables = Set<AnyCancellable>()
+    
     var body: some View {
         ZStack {
             LinearGradient(

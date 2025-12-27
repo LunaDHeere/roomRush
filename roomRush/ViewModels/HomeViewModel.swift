@@ -17,6 +17,11 @@ class HomeViewModel: ObservableObject {
     private let container = PersistenceController.shared.container
     
     func fetchDeals(lat: Double, lon: Double, city: String) async {
+        guard !isLoading else { return }
+        if !deals.isEmpty && allDeals.first?.locationName == city {
+                return
+            }
+        
         self.isLoading = true
         defer { self.isLoading = false }
         
@@ -152,6 +157,10 @@ class HomeViewModel: ObservableObject {
         default:
             self.deals = allDeals
         }
+    }
+    func refreshDeals(lat: Double, lon: Double, city: String) async {
+        // When manually refreshing, we reset the offline status to try the API again
+        await fetchDeals(lat: lat, lon: lon, city: city)
     }
 }
 

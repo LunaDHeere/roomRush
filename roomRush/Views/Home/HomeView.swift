@@ -4,7 +4,7 @@ import Kingfisher
 import CoreLocation
 
 struct HomeView: View {
-    @StateObject private var viewModel = HomeViewModel()
+    @EnvironmentObject var viewModel : HomeViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var locationManager = LocationManager()
     
@@ -29,6 +29,13 @@ struct HomeView: View {
             }
         }
         .background(AppColors.screenBackground)
+        .refreshable {
+                let lat = locationManager.userLocation?.coordinate.latitude ?? 51.0259
+                let lon = locationManager.userLocation?.coordinate.longitude ?? 4.4776
+                let city = authViewModel.currentUser?.city ?? "Mechelen"
+                
+                await viewModel.refreshDeals(lat: lat, lon: lon, city: city)
+            }
         .task {
             await loadDeals()
         }
