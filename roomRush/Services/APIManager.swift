@@ -3,8 +3,12 @@ import Foundation
 import Combine
 
 class APIManager: ObservableObject {
-    private let apiKey = "NEaU5esMuHjZGBSHTtGrtbZoA9D2RSDi"
-    private let apiSecret = "QSa6KF0TPxl9DPSx"
+    private var apiKey: String {
+            return Bundle.main.object(forInfoDictionaryKey: "AmadeusAPIKey") as? String ?? ""
+        }
+        private var apiSecret: String {
+            return Bundle.main.object(forInfoDictionaryKey: "AmadeusAPISecret") as? String ?? ""
+        }
     private var accessToken: String?
     
     func getAccessToken() async throws -> String {

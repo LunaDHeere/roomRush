@@ -9,35 +9,74 @@ struct HomeView: View {
     @StateObject private var locationManager = LocationManager()
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                
-                HeaderSection(
-                    city: authViewModel.currentUser?.city ?? "Locating...",
-                    timeAgo: viewModel.lastFetchTime?.timeAgo() ?? "just now"
-                )
-                
-                FilterSection(selectedFilter: $viewModel.selectedFilter) {
-                    viewModel.applyFilter($0)
+        ZStack(alignment: .top){
+            
+            ScrollView {
+                VStack(spacing: 0) {
+                    
+                    HeaderSection(
+                        city: authViewModel.currentUser?.city ?? "Locating...",
+                        timeAgo: viewModel.lastFetchTime?.timeAgo() ?? "just now"
+                    )
+                    
+                    FilterSection(selectedFilter: $viewModel.selectedFilter) {
+                        viewModel.applyFilter($0)
+                    }
+                    
+                    if viewModel.isLoading {
+                        ProgressView().padding(.top, 50)
+                    } else {
+                        DealsGrid()
+                    }
                 }
-                
-                if viewModel.isLoading {
-                    ProgressView().padding(.top, 50)
-                } else {
-                    DealsGrid()
-                }
+            }
+            if viewModel.isOffline {
+                OfflinePopup()
+                    .padding(.top, 60) // Small gap from the top
+                    .zIndex(1)
+                    .transition(.asymmetric(
+                                insertion: .move(edge: .top).combined(with: .opacity),
+                                removal: .opacity
+                            ))
+                    .onAppear {
+                        // Optional: Auto-hide after 5 seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                            withAnimation { viewModel.isOffline = false }
+                        }
+                    }
             }
         }
         .background(AppColors.screenBackground)
         .refreshable {
-                let lat = locationManager.userLocation?.coordinate.latitude ?? 51.0259
-                let lon = locationManager.userLocation?.coordinate.longitude ?? 4.4776
-                let city = authViewModel.currentUser?.city ?? "Mechelen"
-                
-                await viewModel.refreshDeals(lat: lat, lon: lon, city: city)
-            }
+            // 1. Tell GPS to update
+            locationManager.requestLocation()
+            
+            // 2. Get current coords or fallbacks
+            let lat = locationManager.userLocation?.coordinate.latitude ?? 50.8503
+            let lon = locationManager.userLocation?.coordinate.longitude ?? 4.3517
+            let city = authViewModel.currentUser?.city ?? locationManager.city
+            
+            // 3. Call fetch with forceRefresh: true
+            await viewModel.fetchDeals(lat: lat, lon: lon, city: city, forceRefresh: true)
+        }
         .task {
+            locationManager.requestLocation()
             await loadDeals()
+        }
+        // KEY FIX: Listen for the moment the GPS actually finds you
+        .onChange(of: locationManager.userLocation) { oldLoc, newLoc in
+            if let location = newLoc {
+                Task {
+                    let currentCity = locationManager.city.isEmpty ? "Current Location" : locationManager.city
+                    
+                    await viewModel.fetchDeals(
+                        lat: location.coordinate.latitude,
+                        lon: location.coordinate.longitude,
+                        city: currentCity,
+                        forceRefresh: true
+                    )
+                }
+            }
         }
     }
     

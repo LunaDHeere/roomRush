@@ -22,6 +22,7 @@
 		5A4A7DF72EFD8AE600CE227B /* Exceptions for "roomRush" folder in "roomRush" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Info.plist,
 				Sources.txt,
 			);
 			target = 5A293A912EF8D5D30070C59C /* roomRush */;
@@ -291,6 +292,8 @@
 		};
 		5A293AA32EF8D5DC0070C59C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 5A293A942EF8D5D40070C59C /* roomRush */;
+			baseConfigurationReferenceRelativePath = Secrets.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -299,6 +302,7 @@
 				DEVELOPMENT_TEAM = 5N6RC4WTLP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = roomRush/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "\"Roomrush needs your location to find the best nearby room deals\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -325,6 +329,8 @@
 		};
 		5A293AA42EF8D5DC0070C59C /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 5A293A942EF8D5D40070C59C /* roomRush */;
+			baseConfigurationReferenceRelativePath = Secrets.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -333,6 +339,7 @@
 				DEVELOPMENT_TEAM = 5N6RC4WTLP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = roomRush/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "\"Roomrush needs your location to find the best nearby room deals\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

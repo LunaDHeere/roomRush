@@ -17,14 +17,24 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func requestLocation() {
-        isLoading = true // Start loading
-        manager.requestWhenInUseAuthorization()
-        manager.requestLocation()
-
+        isLoading = true
+        let status = manager.authorizationStatus
+        
+        if status == .notDetermined {
+            manager.requestWhenInUseAuthorization()
+        } else if status == .authorizedWhenInUse || status == .authorizedAlways {
+            manager.startUpdatingLocation() // Continuous updates until we get a good one
+        }
+        
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
+        
+        if location.horizontalAccuracy < 100 {
+            manager.stopUpdatingLocation()
+        }
+        
         DispatchQueue.main.async {
             self.userLocation = location
             
