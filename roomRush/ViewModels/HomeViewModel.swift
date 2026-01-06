@@ -25,35 +25,21 @@ class HomeViewModel: ObservableObject {
         if let savedDate = UserDefaults.standard.object(forKey: lastUpdateKey) as? Date {
             self.lastFetchTime = savedDate
         }
+        loadFromCoreData()
     }
     
-    func fetchDeals(lat: Double, lon: Double, city: String, forceRefresh: Bool = false) async {
+    func fetchDealsFromAPI(lat: Double, lon: Double, city: String) async {
         guard !isLoading else { return }
-        
-        if !forceRefresh && !deals.isEmpty && allDeals.first?.locationName == city {
-            return
-        }
-        
-        if !forceRefresh, let firstDeal = allDeals.first {
-            let diffLat = abs(firstDeal.latitude - lat)
-            let diffLon = abs(firstDeal.longitude - lon)
-            
-            if diffLat < 0.05 && diffLon < 0.05 && !allDeals.isEmpty {
-                return
-            }
-        }
         
         self.isLoading = true
         self.isOffline = false
-        defer { self.isLoading = false }
+        defer{ self.isLoading = false}
         
-        do {
-            // 1. Fetch real data from Amadeus
+        do{
             let amadeusHotels = try await apiManager.fetchHotels(lat: lat, lon: lon)
             
-            // 2. Map Amadeus hotels to your Deal model
-            let fetchedDeals = amadeusHotels.map { hotel in
-                Deal(
+            let fetchedDeals = amadeusHotels.map {
+                hotel in Deal(
                     id: hotel.hotelId,
                     title: hotel.name,
                     roomName: "Last-Minute Special",
@@ -74,25 +60,14 @@ class HomeViewModel: ObservableObject {
             self.lastFetchTime = now
             UserDefaults.standard.set(now, forKey: lastUpdateKey)
             
-            
             self.allDeals = fetchedDeals
             self.applyFilter(selectedFilter)
-            
         } catch {
-            withAnimation {
-                self.isOffline = true
-            }
-            print("❌ API Error: \(error.localizedDescription)")
-            
+            self.isOffline = true
             loadFromCoreData()
-            
-            if allDeals.isEmpty{
-                print("⚠️ No cached data. Generating random exam deals...")
-                generateRandomMockDeals(lat: lat, lon: lon, city: city)
-            }
-            self.isLoading = false
         }
     }
+
     
     private func saveToCoreData(_ fetchedDeals: [Deal]) {
         let context = container.viewContext
@@ -176,8 +151,8 @@ class HomeViewModel: ObservableObject {
     func updateLocationAndFetch(location: CLLocation?, city: String) async {
         guard let coord = location?.coordinate else { return }
         
-        // Only fetch if we don't have deals yet or if the location has changed significantly
-        await fetchDeals(lat: coord.latitude, lon: coord.longitude, city: city)
+        UserDefaults.standard.set(coord.latitude, forKey: "lastLat")
+        UserDefaults.standard.set(coord.longitude, forKey: "lastLon")
     }
     
     func applyFilter(_ filter: String) {
@@ -194,8 +169,7 @@ class HomeViewModel: ObservableObject {
         }
     }
     func refreshDeals(lat: Double, lon: Double, city: String) async {
-        // When manually refreshing, we reset the offline status to try the API again
-        await fetchDeals(lat: lat, lon: lon, city: city)
+        await fetchDealsFromAPI(lat: lat, lon: lon, city: city)
     }
 }
 

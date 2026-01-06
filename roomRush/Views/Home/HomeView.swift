@@ -48,7 +48,6 @@ struct HomeView: View {
         }
         .background(AppColors.screenBackground)
         .refreshable {
-            // 1. Tell GPS to update
             locationManager.requestLocation()
             
             // 2. Get current coords or fallbacks
@@ -56,35 +55,18 @@ struct HomeView: View {
             let lon = locationManager.userLocation?.coordinate.longitude ?? 4.3517
             let city = authViewModel.currentUser?.city ?? locationManager.city
             
-            // 3. Call fetch with forceRefresh: true
-            await viewModel.fetchDeals(lat: lat, lon: lon, city: city, forceRefresh: true)
-        }
+            await viewModel.refreshDeals(lat: lat, lon: lon, city: city)
+            }
         .task {
             locationManager.requestLocation()
-            await loadDeals()
         }
         // KEY FIX: Listen for the moment the GPS actually finds you
         .onChange(of: locationManager.userLocation) { oldLoc, newLoc in
-            if let location = newLoc {
-                Task {
-                    let currentCity = locationManager.city.isEmpty ? "Current Location" : locationManager.city
-                    
-                    await viewModel.fetchDeals(
-                        lat: location.coordinate.latitude,
-                        lon: location.coordinate.longitude,
-                        city: currentCity,
-                        forceRefresh: true
-                    )
-                }
-            }
+            guard let location = newLoc else { return }
+            
+            UserDefaults.standard.set(location.coordinate.latitude, forKey: "lastLat")
+            UserDefaults.standard.set(location.coordinate.longitude, forKey: "lastLon")
         }
-    }
-    
-    private func loadDeals() async {
-        let lat = locationManager.userLocation?.coordinate.latitude ?? 50.8503
-        let lon = locationManager.userLocation?.coordinate.longitude ?? 4.3517
-        let city = authViewModel.currentUser?.city ?? "Brussels"
-        await viewModel.fetchDeals(lat: lat, lon: lon, city: city)
     }
     
     @ViewBuilder

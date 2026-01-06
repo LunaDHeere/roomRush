@@ -41,12 +41,20 @@ struct ProfileView: View {
                                 TextField("Full Name", text: $editedName)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .font(.headline)
+                                    .foregroundColor(.blue)
+                                    .background(Color.white)
+                                    .padding(.horizontal, 12)
+                                
                                 
                                 TextField("Email", text: $editedEmail)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .font(.subheadline)
+                                    .foregroundColor(.blue)
+                                    .background(Color.white)
+                                    .padding(.horizontal, 12)
                                     .keyboardType(.emailAddress)
                                     .autocapitalization(.none)
+                                    
                             } else {
                                 Text(viewModel.currentUser?.fullname ?? "Guest User")
                                     .font(.headline)
