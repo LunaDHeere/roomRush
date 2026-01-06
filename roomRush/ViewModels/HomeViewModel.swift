@@ -8,7 +8,7 @@ import CoreLocation
 @MainActor
 class HomeViewModel: ObservableObject {
     @Published var deals = [Deal]()
-    @Published private var allDeals = [Deal]()
+    @Published var allDeals = [Deal]()
     @Published var isLoading = false
     @Published var lastFetchTime: Date? = nil
     @Published var selectedFilter = "All Deals"
@@ -75,7 +75,7 @@ class HomeViewModel: ObservableObject {
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         
         do {
-            try context.execute(deleteRequest) // Clear old cache
+            try context.execute(deleteRequest)
             for deal in fetchedDeals {
                 let cached = CachedDeal(context: context)
                 cached.id = deal.id

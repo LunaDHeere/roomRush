@@ -6,7 +6,9 @@ import CoreLocation
 struct HomeView: View {
     @EnvironmentObject var viewModel : HomeViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
-    @StateObject private var locationManager = LocationManager()
+    @EnvironmentObject var locationManager : LocationManager
+    
+    @State private var didInitialFetch = false
     
     var body: some View {
         ZStack(alignment: .top){
@@ -32,24 +34,25 @@ struct HomeView: View {
             }
         }
         .background(AppColors.screenBackground)
-        .refreshable {
-            locationManager.requestLocation()
+        /*.refreshable {
             
-            // 2. Get current coords or fallbacks
             let lat = locationManager.userLocation?.coordinate.latitude ?? 50.8503
             let lon = locationManager.userLocation?.coordinate.longitude ?? 4.3517
             let city = authViewModel.currentUser?.city ?? locationManager.city
             
             await viewModel.refreshDeals(lat: lat, lon: lon, city: city)
+            }*/
+        .onChange(of: locationManager.userLocation) { _, newLoc in
+            guard let location = newLoc, !didInitialFetch else { return }
+            didInitialFetch = true
+
+            Task {
+                await viewModel.refreshDeals(
+                    lat: location.coordinate.latitude,
+                    lon: location.coordinate.longitude,
+                    city: authViewModel.currentUser?.city ?? locationManager.city
+                )
             }
-        .task {
-            locationManager.requestLocation()
-        }
-        .onChange(of: locationManager.userLocation) { oldLoc, newLoc in
-            guard let location = newLoc else { return }
-            
-            UserDefaults.standard.set(location.coordinate.latitude, forKey: "lastLat")
-            UserDefaults.standard.set(location.coordinate.longitude, forKey: "lastLon")
         }
     }
     
@@ -69,3 +72,4 @@ struct HomeView: View {
         .padding(.horizontal)
     }
 }
+

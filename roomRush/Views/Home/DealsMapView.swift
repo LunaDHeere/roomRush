@@ -4,7 +4,7 @@ import MapKit
 struct DealsMapView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject private var homeViewModel : HomeViewModel
-    @StateObject private var locationManager = LocationManager()
+    @EnvironmentObject var locationManager : LocationManager
     
     @State private var cameraPosition: MapCameraPosition = .region(MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 51.0259, longitude: 4.4776),
@@ -21,7 +21,7 @@ struct DealsMapView: View {
                 Map(position: $cameraPosition) {
                     UserAnnotation()
                     
-                    ForEach(homeViewModel.deals) { deal in
+                    ForEach(homeViewModel.allDeals) { deal in
                         Marker(deal.title, coordinate: CLLocationCoordinate2D(latitude: deal.latitude, longitude: deal.longitude))
                             .tint(.blue)
                     }
@@ -35,7 +35,6 @@ struct DealsMapView: View {
             }
             .navigationTitle("Explore")
             .navigationBarTitleDisplayMode(.inline)
-            .task { loadInitialDeals() }
         }
     }
     
@@ -88,7 +87,7 @@ struct DealsMapView: View {
             
             let cityName = response?.mapItems.first?.name ?? "Explore"
             Task {
-                await homeViewModel.fetchDeals(lat: coordinate.latitude, lon: coordinate.longitude, city: cityName)
+                await homeViewModel.fetchDealsFromAPI(lat: coordinate.latitude, lon: coordinate.longitude, city: cityName)
                 isSearching = false
             }
         }
@@ -98,6 +97,6 @@ struct DealsMapView: View {
         let lat = locationManager.userLocation?.coordinate.latitude ?? 51.0259
         let lon = locationManager.userLocation?.coordinate.longitude ?? 4.4776
         let city = authViewModel.currentUser?.city ?? "Brussels"
-        Task { await homeViewModel.fetchDeals(lat: lat, lon: lon, city: city) }
+        Task { await homeViewModel.fetchDealsFromAPI(lat: lat, lon: lon, city: city) }
     }
 }

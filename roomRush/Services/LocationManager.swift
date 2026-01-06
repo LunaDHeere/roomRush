@@ -8,6 +8,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var userLocation: CLLocation?
     @Published var city: String = ""
     @Published var isLoading = false // Add this line
+    @Published var didResolveInitialLocation = false
+
     
     override init() {
         super.init()
@@ -23,7 +25,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         if status == .notDetermined {
             manager.requestWhenInUseAuthorization()
         } else if status == .authorizedWhenInUse || status == .authorizedAlways {
-            manager.startUpdatingLocation() // Continuous updates until we get a good one
+            manager.requestLocation()
         }
         
     }
@@ -31,14 +33,13 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         
-        if location.horizontalAccuracy < 100 {
-            manager.stopUpdatingLocation()
-        }
         
         DispatchQueue.main.async {
             self.userLocation = location
             
-            // Reverse geocode to get the city name
+            guard !self.didResolveInitialLocation else { return }
+                    self.didResolveInitialLocation = true
+            
             let geocoder = CLGeocoder()
             geocoder.reverseGeocodeLocation(location) { placemarks, error in
                 DispatchQueue.main.async {

@@ -4,13 +4,13 @@ import CoreLocation
 struct FavouritesView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var homeVM : HomeViewModel
-    
-    @StateObject private var locationManager = LocationManager()
+    @EnvironmentObject var locationManager: LocationManager
     
     @State private var selectedFilter = "All Deals"
+    
     var filteredFavorites: [Deal] {
         let favoriteIds = authVM.currentUser?.favourites ?? []
-        let baseFavorites = homeVM.deals.filter { favoriteIds.contains($0.id) }
+        let baseFavorites = homeVM.allDeals.filter { favoriteIds.contains($0.id) }
         
         switch selectedFilter {
         case "Under $100":
@@ -45,7 +45,7 @@ struct FavouritesView: View {
         .task {
             if homeVM.deals.isEmpty {
                 let city = authVM.currentUser?.city ?? "Mechelen"
-                await homeVM.fetchDeals(lat: 51.0259, lon: 4.4776, city: city)
+                await homeVM.fetchDealsFromAPI(lat: 51.0259, lon: 4.4776, city: city)
             }
         }
     }
