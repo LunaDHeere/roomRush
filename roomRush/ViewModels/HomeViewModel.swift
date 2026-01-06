@@ -175,9 +175,27 @@ class HomeViewModel: ObservableObject {
 
 
 extension Date {
-    func timeAgo() -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        return formatter.localizedString(for: self, relativeTo: Date())
-    }
-}
+    func friendlyLastUpdated() -> String {
+        let secondsAgo = Int(Date().timeIntervalSince(self))
+        
+        if secondsAgo < 60 {
+            return "Updated just now"
+        }
+        
+        let minutesAgo = secondsAgo / 60
+        
+        if minutesAgo < 60 {
+            return "Updated \(minutesAgo) minute\(minutesAgo == 1 ? "" : "s") ago"
+        }
+        
+        let hoursAgo = minutesAgo / 60
+
+        if hoursAgo < 24 {
+            return "Updated \(hoursAgo) hour\(hoursAgo == 1 ? "" : "s") ago"
+        }
+
+        let daysAgo = hoursAgo / 24
+        
+        return "Updated \(daysAgo) day\(daysAgo == 1 ? "" : "s") ago"
+        }
+        }

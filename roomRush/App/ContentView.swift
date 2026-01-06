@@ -2,13 +2,16 @@ import SwiftUI
 import Combine
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var homeViewModel : HomeViewModel
+    @EnvironmentObject var networkMonitor: NetworkMonitor
+    
+    @State private var showOfflineAlert = false
     
     var body: some View {
         Group {
             if authViewModel.isInitialLoading {
-                // 1. Splash Screen / Initial Session Check
                 VStack {
-                    Image(systemName: "bed.double.fill") // Your logo
+                    Image(systemName: "bed.double.fill")
                         .font(.system(size: 60))
                         .foregroundColor(.blue)
                     ProgressView()
@@ -37,6 +40,14 @@ struct ContentView: View {
                 // 3. Unauthenticated Flow
                 LoginView(viewModel: authViewModel)
             }
+        }
+        .onChange(of: networkMonitor.isConnected){_, isConnected in
+            showOfflineAlert = !isConnected
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("You're offline. Showing cached deals.")
         }
         .animation(.easeInOut, value: authViewModel.isAuthenticated)
         .animation(.easeInOut, value: authViewModel.isInitialLoading)

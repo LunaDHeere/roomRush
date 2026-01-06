@@ -174,17 +174,40 @@ class AuthViewModel: ObservableObject {
     }
     
     func updateUserInfo(newName: String, newEmail: String) {
-        guard var user = currentUser else { return }
-        user.fullname = newName
-        user.email = newEmail
+        guard let user = Auth.auth().currentUser else { return }
+        let oldEmail = currentUser?.email ?? ""
         
-        DispatchQueue.main.async { self.currentUser = user }
-        
-        db.collection("users").document(user.id).updateData([
-            "fullname": newName,
-            "email": newEmail
-        ])
-        
-        Auth.auth().currentUser?.sendEmailVerification(beforeUpdatingEmail: newEmail)
+        let credential = EmailAuthProvider.credential(withEmail: oldEmail, password: password)
+        Auth.auth().currentUser?.reauthenticate(with: credential) { result, error in
+            if let error = error {
+                print("Reauth failed: \(error.localizedDescription)")
+                return
+            }
+            
+            //deprecated but since using test data, an email verification can't always be properly sent.
+            user.updateEmail(to: newEmail) { [weak self] error in
+                if let error = error {
+                    print("Error updating email: \(error.localizedDescription)")
+                    return
+                }
+                
+                self?.db.collection("users").document(user.uid).updateData([
+                    "fullname": newName,
+                    "email": newEmail
+                ]) { error in
+                    if let error = error {
+                        print("Error updating Firestore: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    DispatchQueue.main.async {
+                        var updatedUser = self?.currentUser
+                        updatedUser?.fullname = newName
+                        updatedUser?.email = newEmail
+                        self?.currentUser = updatedUser
+                    }
+                }
+            }
+        }
     }
 }

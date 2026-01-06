@@ -16,7 +16,7 @@ struct HomeView: View {
                     
                     HeaderSection(
                         city: authViewModel.currentUser?.city ?? "Locating...",
-                        timeAgo: viewModel.lastFetchTime?.timeAgo() ?? "just now"
+                        timeAgo: viewModel.lastFetchTime?.friendlyLastUpdated() ?? "Updated just now"
                     )
                     
                     FilterSection(selectedFilter: $viewModel.selectedFilter) {
@@ -29,21 +29,6 @@ struct HomeView: View {
                         DealsGrid()
                     }
                 }
-            }
-            if viewModel.isOffline {
-                OfflinePopup()
-                    .padding(.top, 60) // Small gap from the top
-                    .zIndex(1)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .top).combined(with: .opacity),
-                        removal: .opacity
-                    ))
-                    .onAppear {
-                        // Optional: Auto-hide after 5 seconds
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                            withAnimation { viewModel.isOffline = false }
-                        }
-                    }
             }
         }
         .background(AppColors.screenBackground)
@@ -60,7 +45,6 @@ struct HomeView: View {
         .task {
             locationManager.requestLocation()
         }
-        // KEY FIX: Listen for the moment the GPS actually finds you
         .onChange(of: locationManager.userLocation) { oldLoc, newLoc in
             guard let location = newLoc else { return }
             

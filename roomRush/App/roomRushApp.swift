@@ -16,6 +16,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct roomRushApp: App {
     @StateObject var authViewModel = AuthViewModel()
     @StateObject var homeViewModel = HomeViewModel()
+    @StateObject var networkMonitor = NetworkMonitor()
+    
     let persistenceController = PersistenceController.shared
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
@@ -24,6 +26,7 @@ struct roomRushApp: App {
             ContentView()
                 .environmentObject(authViewModel)
                 .environmentObject(homeViewModel)
+                .environmentObject(networkMonitor)
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
