@@ -15,9 +15,7 @@
 
 ## 📱 App Demo
 
-<p align="center">
-  <img src="Screenshots and Demo/Demo.mp4" alt="App Walkthrough" width="300" />
-</p>
+▶️ [Watch the demo video](Screenshots%20and%20demo/demo.mp4)
 
 ## About the app
 roomRush is a native iOS application designed for travelers looking for last-minute hotel deals. Built with SwiftUI and the Amadeus API, it helps users discover, filter, and save hotel deals in real-time, with full offline support and location-based searching.
