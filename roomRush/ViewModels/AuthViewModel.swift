@@ -21,7 +21,7 @@ class AuthViewModel: ObservableObject {
     init() {
         authListenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self = self else { return }
-                
+            
             if let user = user {
                 self.fetchUser(userId: user.uid)
             } else {
@@ -33,6 +33,7 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
+    
     deinit {
         if let handle = authListenerHandle {
             Auth.auth().removeStateDidChangeListener(handle)
@@ -47,7 +48,7 @@ class AuthViewModel: ObservableObject {
         
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
             if let error = error {
-                DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                DispatchQueue.main.async { self.errorMessage = self.getFriendlyError(error) }
                 return
             }
 
@@ -58,8 +59,7 @@ class AuthViewModel: ObservableObject {
                 email: self.email,
                 hasCompletedOnboarding: true
             )
-            // Logic preserved: Set UI onboarding to false to trigger flow, but save 'true' in DB?
-            //what does ai mean by that?
+            
             DispatchQueue.main.async { self.completedOnboarding = false }
             self.saveUserToFirestore(user)
         }
@@ -68,7 +68,7 @@ class AuthViewModel: ObservableObject {
     func signIn() {
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
             if let error = error {
-                DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                DispatchQueue.main.async { self.errorMessage = self.getFriendlyError(error) }
                 return
             }
             guard let uid = result?.user.uid else { return }
@@ -83,10 +83,7 @@ class AuthViewModel: ObservableObject {
                 self.isAuthenticated = false
                 self.currentUser = nil
                 self.completedOnboarding = false
-                self.email = ""
-                self.password = ""
-                self.fullname = ""
-                self.errorMessage = ""
+                self.resetForm()
             }
         } catch {
             print("Error signing out: \(error.localizedDescription)")
@@ -96,7 +93,7 @@ class AuthViewModel: ObservableObject {
     func fetchUser(userId: String) {
         db.collection("users").document(userId).getDocument { snapshot, error in
             if let error = error {
-                DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                DispatchQueue.main.async { self.errorMessage = self.getFriendlyError(error) }
                 return
             }
             
@@ -138,7 +135,7 @@ class AuthViewModel: ObservableObject {
             "city": city,
             "hasCompletedOnboarding": true
         ]) { error in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { // 0.5s delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.currentUser = user
                 withAnimation {
                     self.completedOnboarding = true
@@ -162,41 +159,38 @@ class AuthViewModel: ObservableObject {
             .updateData(["favourites": user.favourites])
     }
     
-    func updateUserInfo(newName: String, newEmail: String) {
-        guard let user = Auth.auth().currentUser else { return }
-        let oldEmail = currentUser?.email ?? ""
+
+    private func resetForm() {
+        self.email = ""
+        self.password = ""
+        self.fullname = ""
+        self.errorMessage = ""
+    }
+    
+    private func getFriendlyError(_ error: Error) -> String {
+        let nsError = error as NSError
         
-        let credential = EmailAuthProvider.credential(withEmail: oldEmail, password: password)
-        Auth.auth().currentUser?.reauthenticate(with: credential) { result, error in
-            if let error = error {
-                print("Reauth failed: \(error.localizedDescription)")
-                return
-            }
-            
-            //deprecated but since using test data, an email verification can't always be properly sent.
-            user.updateEmail(to: newEmail) { [weak self] error in
-                if let error = error {
-                    print("Error updating email: \(error.localizedDescription)")
-                    return
-                }
-                
-                self?.db.collection("users").document(user.uid).updateData([
-                    "fullname": newName,
-                    "email": newEmail
-                ]) { error in
-                    if let error = error {
-                        print("Error updating Firestore: \(error.localizedDescription)")
-                        return
-                    }
-                    
-                    DispatchQueue.main.async {
-                        var updatedUser = self?.currentUser
-                        updatedUser?.fullname = newName
-                        updatedUser?.email = newEmail
-                        self?.currentUser = updatedUser
-                    }
-                }
-            }
+        guard let errorCode = AuthErrorCode(rawValue: nsError.code) else {
+            return error.localizedDescription
+        }
+        
+        switch errorCode {
+        case .invalidEmail:
+            return "Please enter a valid email address."
+        case .wrongPassword:
+            return "Incorrect password. Please try again."
+        case .userNotFound:
+            return "We couldn't find an account with that email."
+        case .weakPassword:
+            return "Your password is too weak. Please use at least 6 characters."
+        case .emailAlreadyInUse:
+            return "This email is already associated with another account."
+        case .networkError:
+            return "Network error. Please check your internet connection."
+        case .requiresRecentLogin:
+            return "For security, please log out and log back in to make this change."
+        default:
+            return "An unexpected error occurred. Please try again."
         }
     }
 }

@@ -2,11 +2,10 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var viewModel: AuthViewModel
-    @State private var isEditing = false
-    @State private var editedName = ""
-    @State private var editedEmail = ""
-    
     @AppStorage("useMiles") private var useMiles = false
+    
+    // Detects when app moves from background to foreground (kept just in case you use it elsewhere)
+    @Environment(\.scenePhase) var scenePhase
     
     var body: some View {
         ScrollView {
@@ -23,74 +22,39 @@ struct ProfileView: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(Color.blue.opacity(0.2))
                         }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal)
-                            .padding(.top, 20)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.top, 20)
                     )
                 
+                // MARK: - Main Content Stack
                 VStack(spacing: 20) {
-                    // MARK: - Profile Card
+                    // MARK: - Read-Only Profile Card
                     HStack(spacing: 15) {
+                        // Initials Circle
                         Circle()
                             .fill(LinearGradient(gradient: Gradient(colors: [.blue.opacity(0.7), .blue]), startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 65, height: 65)
                             .overlay(Text(viewModel.currentUser?.initials ?? "??").foregroundColor(.white).bold())
                         
+                        // User Details
                         VStack(alignment: .leading, spacing: 5) {
-                            if isEditing {
-                                TextField("Full Name", text: $editedName)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                    .background(Color.white)
-                                    .padding(.horizontal, 12)
-                                
-                                
-                                TextField("Email", text: $editedEmail)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .font(.subheadline)
-                                    .foregroundColor(.blue)
-                                    .background(Color.white)
-                                    .padding(.horizontal, 12)
-                                    .keyboardType(.emailAddress)
-                                    .autocapitalization(.none)
-                                    
-                            } else {
-                                Text(viewModel.currentUser?.fullname ?? "Guest User")
-                                    .font(.headline)
-                                    .foregroundColor(.black)
-                                Text(viewModel.currentUser?.email ?? "email@example.com")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }
+                            Text(viewModel.currentUser?.fullname ?? "Guest User")
+                                .font(.headline)
+                                .foregroundColor(.black)
+                            
+                            Text(viewModel.currentUser?.email ?? "email@example.com")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                         }
                         
                         Spacer()
-                        
-                        // Edit / Save Button
-                        Button(action: {
-                            if isEditing {
-                                // Save logic
-                                viewModel.updateUserInfo(newName: editedName, newEmail: editedEmail)
-                                isEditing = false
-                            } else {
-                                // Start editing: populate the fields with current data
-                                editedName = viewModel.currentUser?.fullname ?? ""
-                                editedEmail = viewModel.currentUser?.email ?? ""
-                                isEditing = true
-                            }
-                        }) {
-                            Text(isEditing ? "Save" : "Edit")
-                                .foregroundColor(.blue)
-                                .font(.subheadline)
-                                .bold()
-                        }
                     }
                     .padding()
                     .background(Color.white)
                     .cornerRadius(20)
                     .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
-                    .padding(.top, -35)
+                    .padding(.top, -35) // This pulls the card up to overlap the header
                     
                     // MARK: - Menu
                     VStack(spacing: 15) {
@@ -110,9 +74,8 @@ struct ProfileView: View {
                                 
                                 Spacer()
                                 
-                                // The toggle tied to @AppStorage
                                 Toggle("", isOn: $useMiles)
-                                    .labelsHidden() // Removes the extra label space
+                                    .labelsHidden()
                                 
                                 Text(useMiles ? "Miles" : "KM")
                                     .font(.caption)
@@ -122,9 +85,9 @@ struct ProfileView: View {
                             }
                             .padding()
                         }
+                        
                         MenuSection(title: "Support") {
                             MenuItem(icon: "questionmark.circle", label: "Help & Support") {
-                                // Replace this with your actual GitHub repo link
                                 if let url = URL(string: "https://github.com/LunaDHeere/roomRush") {
                                     UIApplication.shared.open(url)
                                 }
@@ -144,21 +107,6 @@ struct ProfileView: View {
 }
 
 // MARK: - Subviews
-struct StatCard: View {
-    let value: String
-    let label: String
-    var body: some View {
-        VStack {
-            Text(value).font(.headline).bold()
-            Text(label).font(.caption).foregroundColor(.gray)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 15)
-        .background(Color.white)
-        .cornerRadius(15)
-    }
-}
-
 struct MenuSection<Content: View>: View {
     let title: String
     let content: Content
