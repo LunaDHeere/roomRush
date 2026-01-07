@@ -172,4 +172,6 @@ The project integrates standardized external dependencies via Swift Package Mana
 ## License
 This project is created for educational purposes only. It is not intended for commercial use.
 
+## Sources
 
+Sources used for this project can be found under the "Sources.txt" file.
