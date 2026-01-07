@@ -29,7 +29,6 @@ struct FavouritesView: View {
             VStack(spacing: 0) {
                 favouritesHeader
                 
-                // Reuse your existing FilterSection component
                 FilterSection(selectedFilter: $selectedFilter)
                 
                 if filteredFavorites.isEmpty {
@@ -51,7 +50,6 @@ struct FavouritesView: View {
     private var favouritesHeader: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Saved Deals").font(.system(size: 24, weight: .bold))
-            // Count now reflects the filtered result
             Text("\(filteredFavorites.count) \(filteredFavorites.count == 1 ? "room" : "rooms") matching")
                 .font(.system(size: 14)).foregroundColor(.gray)
         }

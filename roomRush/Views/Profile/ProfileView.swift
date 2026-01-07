@@ -4,13 +4,10 @@ struct ProfileView: View {
     @EnvironmentObject var viewModel: AuthViewModel
     @AppStorage("useMiles") private var useMiles = false
     
-    // Detects when app moves from background to foreground (kept just in case you use it elsewhere)
-    @Environment(\.scenePhase) var scenePhase
     
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // MARK: - Header
                 LinearGradient(gradient: Gradient(colors: [Color.blue, Color(red: 0.1, green: 0.4, blue: 0.8)]), startPoint: .top, endPoint: .bottom)
                     .frame(height: 150)
                     .overlay(
@@ -27,17 +24,13 @@ struct ProfileView: View {
                         .padding(.top, 20)
                     )
                 
-                // MARK: - Main Content Stack
                 VStack(spacing: 20) {
-                    // MARK: - Read-Only Profile Card
                     HStack(spacing: 15) {
-                        // Initials Circle
                         Circle()
                             .fill(LinearGradient(gradient: Gradient(colors: [.blue.opacity(0.7), .blue]), startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 65, height: 65)
                             .overlay(Text(viewModel.currentUser?.initials ?? "??").foregroundColor(.white).bold())
                         
-                        // User Details
                         VStack(alignment: .leading, spacing: 5) {
                             Text(viewModel.currentUser?.fullname ?? "Guest User")
                                 .font(.headline)
@@ -54,9 +47,7 @@ struct ProfileView: View {
                     .background(Color.white)
                     .cornerRadius(20)
                     .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
-                    .padding(.top, -35) // This pulls the card up to overlap the header
-                    
-                    // MARK: - Menu
+                    .padding(.top, -35)
                     VStack(spacing: 15) {
                         MenuSection(title: "Account") {
                             MenuItem(icon: "person", label: "Personal Information")
@@ -106,7 +97,6 @@ struct ProfileView: View {
     }
 }
 
-// MARK: - Subviews
 struct MenuSection<Content: View>: View {
     let title: String
     let content: Content

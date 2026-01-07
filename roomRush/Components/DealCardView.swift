@@ -1,5 +1,6 @@
 import SwiftUI
 import Kingfisher
+import CoreLocation
 
 struct DealCardView: View {
     let deal: Deal
@@ -8,6 +9,7 @@ struct DealCardView: View {
     let userLat: Double
     let userLon: Double
     
+    @Environment(\.openURL) var openURL
     @AppStorage("useMiles") private var useMiles = false
     
     var body: some View {
@@ -20,7 +22,6 @@ struct DealCardView: View {
                     .clipped()
 
                 badgeView(text: "-\(deal.discountPercentage)%", color: .red, alignment: .topLeading)
-                
                 Button(action: onToggleFavourite) {
                     Image(systemName: isFavourited ? "heart.fill" : "heart")
                         .font(.system(size: 18))
@@ -31,7 +32,6 @@ struct DealCardView: View {
                         .shadow(radius: 2)
                 }
                 .padding(12)
-                
                 badgeView(text: "Only \(deal.roomsLeft) left", color: .green, alignment: .bottomLeading)
             }
             
@@ -60,9 +60,33 @@ struct DealCardView: View {
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+        .onTapGesture {
+            openBookingCom()
+        }
     }
-    
+        private func openBookingCom() {
+            let hotelLocation = CLLocation(latitude: deal.latitude, longitude: deal.longitude)
+            let geocoder = CLGeocoder()
+            
+            geocoder.reverseGeocodeLocation(hotelLocation) { placemarks, error in
+                var cityToSearch = deal.locationName
+                if let placemark = placemarks?.first, let locality = placemark.locality {
+                    cityToSearch = locality
+                }
 
+                let query = "\(deal.title) \(cityToSearch)"
+                var components = URLComponents(string: "https://www.booking.com/searchresults.html")
+                components?.queryItems = [
+                    URLQueryItem(name: "ss", value: query),
+                    URLQueryItem(name: "latitude", value: String(deal.latitude)),
+                    URLQueryItem(name: "longitude", value: String(deal.longitude))
+                ]
+                if let url = components?.url {
+                    openURL(url)
+                }
+            }
+        }
+    
     private func badgeView(text: String, color: Color, alignment: Alignment) -> some View {
         Text(text)
             .font(.system(size: 13, weight: .bold))

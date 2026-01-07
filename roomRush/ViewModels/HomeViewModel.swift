@@ -23,7 +23,6 @@ class HomeViewModel: ObservableObject {
     private var fetchTask: Task<Void, Never>? = nil
     
     init() {
-        // Load the persistent timestamp when the ViewModel is created
         if let savedDate = UserDefaults.standard.object(forKey: lastUpdateKey) as? Date {
             self.lastFetchTime = savedDate
         }
@@ -31,7 +30,6 @@ class HomeViewModel: ObservableObject {
     }
     func fetchDealsFromAPI(lat: Double, lon: Double, city: String, updateTimestamp: Bool = false, isRefresh: Bool = false) async {
         
-        // 2. Only check/set isLoading if this IS NOT a refresh
         if !isRefresh {
             if isLoading { return }
             self.isLoading = true
@@ -39,7 +37,6 @@ class HomeViewModel: ObservableObject {
         
         self.isOffline = false
         
-        // 3. Ensure we stop loading only if we started it
         defer {
             if !isRefresh {
                 self.isLoading = false
@@ -53,9 +50,6 @@ class HomeViewModel: ObservableObject {
             
             if Task.isCancelled { return }
             
-            print("📡 API returned \(amadeusHotels.count) hotels")
-            
-            // --- ADD THIS LOG ---
             print("📡 API returned \(amadeusHotels.count) hotels for \(city)")
             
             let fetchedDeals = amadeusHotels.map { hotel in
@@ -96,7 +90,6 @@ class HomeViewModel: ObservableObject {
     }
     
 
-    
     private func saveToCoreData(_ fetchedDeals: [Deal]) {
         let context = container.viewContext
         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CachedDeal.fetchRequest()
@@ -152,7 +145,7 @@ class HomeViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Random Exam Fallback
+    //fallback in case i've run out of api calls on amadeus
     private func generateRandomMockDeals(lat: Double, lon: Double, city: String) {
         let hotelNames = ["Grand \(city) Inn", "The \(city) Plaza", "Riverside Suites", "Urban Nomad Hostel", "Blue Harbor Hotel"]
         
@@ -163,7 +156,7 @@ class HomeViewModel: ObservableObject {
                 title: hotelNames[i],
                 roomName: "Exam Fallback Room",
                 locationName: city,
-                price: Int(Double(original) * 0.6), // 40% discount
+                price: Int(Double(original) * 0.6),
                 originalPrice: original,
                 roomsLeft: Int.random(in: 1...5),
                 rating: Double.random(in: 4.0...4.9),
@@ -175,12 +168,6 @@ class HomeViewModel: ObservableObject {
         }
         self.allDeals = mockDeals
         self.applyFilter(selectedFilter)
-    }
-    func updateLocationAndFetch(location: CLLocation?, city: String) async {
-        guard let coord = location?.coordinate else { return }
-        
-        UserDefaults.standard.set(coord.latitude, forKey: "lastLat")
-        UserDefaults.standard.set(coord.longitude, forKey: "lastLon")
     }
     
     func applyFilter(_ filter: String) {
@@ -201,7 +188,6 @@ class HomeViewModel: ObservableObject {
     }
     
     func manualRefresh(lat: Double, lon: Double, city: String) async {
-        // Cancel any existing running task so they don't fight
         fetchTask?.cancel()
         
         fetchTask = Task {
@@ -213,34 +199,26 @@ class HomeViewModel: ObservableObject {
                 isRefresh: true
             )
         }
-        // We await the handle to ensure the refresh spinner stays visible until done
         _ = await fetchTask?.value
     }
 }
-
 
 extension Date {
     func friendlyLastUpdated() -> String {
         let secondsAgo = Int(Date().timeIntervalSince(self))
         
-        if secondsAgo < 60 {
+        switch secondsAgo {
+        case 0..<60:
             return "Updated just now"
+        case 60..<3600:
+            let minutes = secondsAgo / 60
+            return "Updated \(minutes) minute\(minutes == 1 ? "" : "s") ago"
+        case 3600..<86400:
+            let hours = secondsAgo / 3600
+            return "Updated \(hours) hour\(hours == 1 ? "" : "s") ago"
+        default:
+            let days = secondsAgo / 86400
+            return "Updated \(days) day\(days == 1 ? "" : "s") ago"
         }
-        
-        let minutesAgo = secondsAgo / 60
-        
-        if minutesAgo < 60 {
-            return "Updated \(minutesAgo) minute\(minutesAgo == 1 ? "" : "s") ago"
-        }
-        
-        let hoursAgo = minutesAgo / 60
-
-        if hoursAgo < 24 {
-            return "Updated \(hoursAgo) hour\(hoursAgo == 1 ? "" : "s") ago"
-        }
-
-        let daysAgo = hoursAgo / 24
-        
-        return "Updated \(daysAgo) day\(daysAgo == 1 ? "" : "s") ago"
-        }
-        }
+    }
+}

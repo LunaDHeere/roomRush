@@ -17,7 +17,6 @@ struct DealsMapView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                // The Map
                 Map(position: $cameraPosition) {
                     UserAnnotation()
                     
@@ -26,17 +25,56 @@ struct DealsMapView: View {
                             .tint(.blue)
                     }
                 }
-                .mapControls {
-                    MapUserLocationButton()
-                    MapCompass()
-                }
                 
                 searchBarOverlay
+                VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: goToUserLocation) {
+                        Image(systemName: "location.fill")
+                            .font(.title2)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 30) // Push up slightly to avoid TabBar
+                }
             }
+        }
             .navigationTitle("Explore")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
+    
+    private func goToUserLocation() {
+            guard let location = locationManager.userLocation else {
+                print("User location not available yet")
+                locationManager.requestLocation() // Try to kickstart it if missing
+                return
+            }
+            
+            withAnimation {
+                cameraPosition = .region(MKCoordinateRegion(
+                    center: location.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                ))
+            }
+            
+            Task {
+                print("Refreshing and fetching deals for current location")
+                let cityName = locationManager.city.isEmpty ? "Current Location" : locationManager.city
+                
+                await homeViewModel.fetchDealsFromAPI(
+                    lat: location.coordinate.latitude,
+                    lon: location.coordinate.longitude,
+                    city: cityName
+                )
+            }
+        }
     
     private var searchBarOverlay: some View {
         VStack {

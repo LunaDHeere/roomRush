@@ -8,7 +8,7 @@ struct LoginView: View {
     var body: some View {
         NavigationStack{
             ZStack {
-                // Background Gradient
+                
                 LinearGradient(gradient: Gradient(colors: [Color(red: 0.95, green: 0.97, blue: 1.0), .white]),
                                startPoint: .top,
                                endPoint: .bottom)
@@ -17,7 +17,6 @@ struct LoginView: View {
                 ScrollView {
                     VStack(spacing: 30) {
                         
-                        // Logo/Brand Area
                         VStack(spacing: 16) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 20)
@@ -41,28 +40,26 @@ struct LoginView: View {
                         }
                         .padding(.top, 60)
                         
-                        // Form Fields
                         VStack(alignment: .leading, spacing: 20) {
                             if isSignUp {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Full Name")
-                                            .font(.system(size: 14, weight: .medium))
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Full Name")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.gray)
+                                    
+                                    HStack {
+                                        Image(systemName: "person")
                                             .foregroundColor(.gray)
-                                        
-                                        HStack {
-                                            Image(systemName: "person")
-                                                .foregroundColor(.gray)
-                                            TextField("John Doe", text: $viewModel.fullname)
-                                                .foregroundColor(.black)
-                                        }
-                                        .padding()
-                                        .background(Color.white)
-                                        .cornerRadius(12)
-                                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                                        TextField("John Doe", text: $viewModel.fullname)
+                                            .foregroundColor(.black)
                                     }
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(12)
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                                 }
+                            }
                             
-                            // Email Field
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Email")
                                     .font(.system(size: 14, weight: .medium))
@@ -83,7 +80,6 @@ struct LoginView: View {
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                             }
                             
-                            // Password Field
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Password")
                                     .font(.system(size: 14, weight: .medium))
@@ -114,18 +110,8 @@ struct LoginView: View {
                                 .cornerRadius(12)
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                             }
-                            
-                            if !isSignUp {
-                                Button("Forgot password?") {
-                                    // Action
-                                }
-                                .font(.system(size: 14))
-                                .foregroundColor(.blue)
-                                .frame(maxWidth: .infinity, alignment: .trailing)
-                            }
                         }
                         
-                        // Buttons
                         VStack(spacing: 12) {
                             Button(action: {
                                 isSignUp ? viewModel.signUp() : viewModel.signIn()
@@ -139,15 +125,11 @@ struct LoginView: View {
                                     .cornerRadius(12)
                             }
                         }
-                        
-                        // Error Message
                         if !viewModel.errorMessage.isEmpty {
                             Text(viewModel.errorMessage)
                                 .foregroundColor(.red)
                                 .font(.caption)
                         }
-                        
-                        // Footer
                         Button(action: { isSignUp.toggle() }) {
                             HStack {
                                 Text(isSignUp ? "Already have an account?" : "Don't have an account?")
@@ -162,7 +144,6 @@ struct LoginView: View {
                     }
                     .padding(.horizontal, 24)
                 }
-                
             }
         }
     }
