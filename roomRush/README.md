@@ -74,7 +74,7 @@ AMADEUS_API_SECRET = YOUR_API_SECRET
 
 **!!IMPORTANT!! Ensure the Secrets.xcconfig file is listed in the .gitignore file. DO NOT commit this file to public version control.**
 
-## ✅ Assignment Compliance (Checklist)
+## Assignment Compliance (Checklist)
 *>Note: This section is specifically for the project evaluator to verify that all assignment requirements have been met. If you are just browsing the repo, feel free to skip this part!*
 
 ### 1. Webservice (API)
