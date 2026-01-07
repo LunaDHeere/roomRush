@@ -18,7 +18,8 @@ Open xcode and clone the git repository or open your terminal and run the follow
 
 ```bash
 git clone [https://github.com/LunaDHeere/roomRush](https://github.com/LunaDHeere/roomRush)
-cd roomRush
+cd roomRush 
+```
 
 ### 2. Install Dependencies
 Open the project in Xcode. This project uses Swift Package Manager so the packages should resolve automatically. If they do not, go to 
