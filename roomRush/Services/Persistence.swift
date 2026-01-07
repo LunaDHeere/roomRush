@@ -41,8 +41,6 @@ struct PersistenceController {
         }
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
-                
-                // if i use a fatal error it will just crash te app.
                 print("❌ Core Data Error: \(error), \(error.userInfo)")
             }
         })

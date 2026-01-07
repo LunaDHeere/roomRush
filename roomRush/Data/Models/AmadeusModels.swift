@@ -1,26 +1,26 @@
 
-struct TokenResponse: Codable, Sendable {
+struct TokenResponse: Codable {
     let access_token: String
 }
 
-struct HotelResponse: Codable, Sendable {
+struct HotelResponse: Codable {
     let data: [AmadeusHotel]
     let meta: [String: AnyCodable]?
 }
 
-struct AmadeusHotel: Codable, Sendable {
+struct AmadeusHotel: Codable {
     let name: String
     let hotelId: String
     let geoCode: AmadeusGeoCode
     let address: AmadeusAddress?
     
-    struct AmadeusGeoCode: Codable, Sendable {
+    struct AmadeusGeoCode: Codable {
         let latitude: Double
         let longitude: Double
     }
-    struct AmadeusAddress: Codable, Sendable {
+    struct AmadeusAddress: Codable {
             let cityName: String?
         }
 }
 
-struct AnyCodable: Codable, Sendable {}
+struct AnyCodable: Codable {}

@@ -9,8 +9,6 @@ class APIManager: ObservableObject {
     private var apiSecret: String {
         return Bundle.main.object(forInfoDictionaryKey: "AmadeusAPISecret") as? String ?? ""
     }
-    
-    // state
     private var accessToken: String?
     private var accessTokenTask: Task<String, Error>?
 

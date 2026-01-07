@@ -41,7 +41,7 @@ struct DealsMapView: View {
                             .shadow(radius: 4)
                     }
                     .padding(.trailing, 20)
-                    .padding(.bottom, 30) // Push up slightly to avoid TabBar
+                    .padding(.bottom, 30)
                 }
             }
         }
@@ -53,7 +53,7 @@ struct DealsMapView: View {
     private func goToUserLocation() {
             guard let location = locationManager.userLocation else {
                 print("User location not available yet")
-                locationManager.requestLocation() // Try to kickstart it if missing
+                locationManager.requestLocation()
                 return
             }
             

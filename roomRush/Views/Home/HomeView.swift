@@ -54,7 +54,7 @@ struct HomeView: View {
 
             while locationManager.userLocation == nil {
                 if Date().timeIntervalSince(start) > 5 {
-                    break // timeout after 5 seconds
+                    break
                 }
                 try? await Task.sleep(nanoseconds: 300_000_000)
             }
