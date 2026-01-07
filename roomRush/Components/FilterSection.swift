@@ -3,7 +3,6 @@ import SwiftUI
 
 struct FilterSection: View {
     @Binding var selectedFilter: String
-    let onFilterChange: (String) -> Void
     
     private let categories = ["All Deals", "Hotels", "Hostels", "Under $100"]
     
@@ -14,7 +13,7 @@ struct FilterSection: View {
                     FilterChipView(title: cat, isActive: selectedFilter == cat)
                         .onTapGesture {
                             withAnimation {
-                                onFilterChange(cat)
+                                selectedFilter = cat
                             }
                         }
                 }
@@ -25,7 +24,6 @@ struct FilterSection: View {
     }
 }
 
-// Re-using your existing chip design
 struct FilterChipView: View {
     let title: String
     var isActive: Bool

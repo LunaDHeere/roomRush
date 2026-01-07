@@ -20,6 +20,8 @@ class HomeViewModel: ObservableObject {
     
     private let lastUpdateKey = "LastServiceUpdate"
     
+    private var fetchTask: Task<Void, Never>? = nil
+    
     init() {
         // Load the persistent timestamp when the ViewModel is created
         if let savedDate = UserDefaults.standard.object(forKey: lastUpdateKey) as? Date {
@@ -27,19 +29,37 @@ class HomeViewModel: ObservableObject {
         }
         loadFromCoreData()
     }
-    
-    func fetchDealsFromAPI(lat: Double, lon: Double, city: String) async {
-        guard !isLoading else { return }
+    func fetchDealsFromAPI(lat: Double, lon: Double, city: String, updateTimestamp: Bool = false, isRefresh: Bool = false) async {
         
-        self.isLoading = true
+        // 2. Only check/set isLoading if this IS NOT a refresh
+        if !isRefresh {
+            if isLoading { return }
+            self.isLoading = true
+        }
+        
         self.isOffline = false
-        defer{ self.isLoading = false}
         
-        do{
+        // 3. Ensure we stop loading only if we started it
+        defer {
+            if !isRefresh {
+                self.isLoading = false
+            }
+        }
+
+        do {
+            print("🚀 Starting API call for \(city)")
+            
             let amadeusHotels = try await apiManager.fetchHotels(lat: lat, lon: lon)
             
-            let fetchedDeals = amadeusHotels.map {
-                hotel in Deal(
+            if Task.isCancelled { return }
+            
+            print("📡 API returned \(amadeusHotels.count) hotels")
+            
+            // --- ADD THIS LOG ---
+            print("📡 API returned \(amadeusHotels.count) hotels for \(city)")
+            
+            let fetchedDeals = amadeusHotels.map { hotel in
+                Deal(
                     id: hotel.hotelId,
                     title: hotel.name,
                     roomName: "Last-Minute Special",
@@ -54,19 +74,27 @@ class HomeViewModel: ObservableObject {
                     longitude: hotel.geoCode.longitude
                 )
             }
-            saveToCoreData(fetchedDeals)
-            
-            let now = Date()
-            self.lastFetchTime = now
-            UserDefaults.standard.set(now, forKey: lastUpdateKey)
-            
             self.allDeals = fetchedDeals
             self.applyFilter(selectedFilter)
-        } catch {
-            self.isOffline = true
-            loadFromCoreData()
-        }
+            
+            if updateTimestamp {
+                self.lastFetchTime = Date()
+                UserDefaults.standard.set(Date(), forKey: lastUpdateKey)
+            }
+            
+            saveToCoreData(fetchedDeals)
+                    
+            } catch is CancellationError {
+                print("ℹ️ Task was cancelled, not an actual network failure")
+
+            } catch {
+                print("❌ Actual Error: \(error)")
+                self.isOffline = true
+                loadFromCoreData()
+            }
+            
     }
+    
 
     
     private func saveToCoreData(_ fetchedDeals: [Deal]) {
@@ -170,6 +198,23 @@ class HomeViewModel: ObservableObject {
     }
     func refreshDeals(lat: Double, lon: Double, city: String) async {
         await fetchDealsFromAPI(lat: lat, lon: lon, city: city)
+    }
+    
+    func manualRefresh(lat: Double, lon: Double, city: String) async {
+        // Cancel any existing running task so they don't fight
+        fetchTask?.cancel()
+        
+        fetchTask = Task {
+            await fetchDealsFromAPI(
+                lat: lat,
+                lon: lon,
+                city: city,
+                updateTimestamp: true,
+                isRefresh: true
+            )
+        }
+        // We await the handle to ensure the refresh spinner stays visible until done
+        _ = await fetchTask?.value
     }
 }
 

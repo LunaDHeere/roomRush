@@ -30,9 +30,7 @@ struct FavouritesView: View {
                 favouritesHeader
                 
                 // Reuse your existing FilterSection component
-                FilterSection(selectedFilter: $selectedFilter) { newFilter in
-                    selectedFilter = newFilter
-                }
+                FilterSection(selectedFilter: $selectedFilter)
                 
                 if filteredFavorites.isEmpty {
                     emptyStateView

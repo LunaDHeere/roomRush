@@ -10,25 +10,17 @@ struct DealCardView: View {
     
     @AppStorage("useMiles") private var useMiles = false
     
-    // Logic for randomized distance based on the hotel ID
-    var distance: Double {
-        Double(abs(deal.id.hashValue % 50)) / 10.0 + 0.5
-    }
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // MARK: - Image & Badges
             ZStack(alignment: .topTrailing) {
                 KFImage(URL(string: deal.imageUrl))
                     .resizable()
                     .scaledToFill()
                     .frame(height: 200)
                     .clipped()
-                
-                // Discount Badge (Top Left)
+
                 badgeView(text: "-\(deal.discountPercentage)%", color: .red, alignment: .topLeading)
                 
-                // Favorite Button (Top Right)
                 Button(action: onToggleFavourite) {
                     Image(systemName: isFavourited ? "heart.fill" : "heart")
                         .font(.system(size: 18))
@@ -40,11 +32,9 @@ struct DealCardView: View {
                 }
                 .padding(12)
                 
-                // Availability Badge (Bottom Left)
                 badgeView(text: "Only \(deal.roomsLeft) left", color: .green, alignment: .bottomLeading)
             }
             
-            // MARK: - Details
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -72,7 +62,7 @@ struct DealCardView: View {
         .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
     }
     
-    // MARK: - Helper Subviews
+
     private func badgeView(text: String, color: Color, alignment: Alignment) -> some View {
         Text(text)
             .font(.system(size: 13, weight: .bold))

@@ -20,7 +20,6 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(red: 0.95, green: 0.97, blue: 1.0))
             } else if authViewModel.isAuthenticated {
-                // 2. Authenticated Flow
                 if authViewModel.completedOnboarding {
                     TabView {
                         NavigationStack { HomeView() }
@@ -37,10 +36,10 @@ struct ContentView: View {
                     }
                 }
             } else {
-                // 3. Unauthenticated Flow
                 LoginView(viewModel: authViewModel)
             }
         }
+        
         .onChange(of: networkMonitor.isConnected){_, isConnected in
             showOfflineAlert = !isConnected
         }

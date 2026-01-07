@@ -21,9 +21,10 @@ struct HomeView: View {
                         timeAgo: viewModel.lastFetchTime?.friendlyLastUpdated() ?? "Updated just now"
                     )
                     
-                    FilterSection(selectedFilter: $viewModel.selectedFilter) {
-                        viewModel.applyFilter($0)
-                    }
+                    FilterSection(selectedFilter: $viewModel.selectedFilter)
+                        .onChange(of: viewModel.selectedFilter) { oldValue, newValue in
+                                viewModel.applyFilter(newValue)
+                            }
                     
                     if viewModel.isLoading {
                         ProgressView().padding(.top, 50)
@@ -34,25 +35,38 @@ struct HomeView: View {
             }
         }
         .background(AppColors.screenBackground)
-        /*.refreshable {
+        .onAppear{
+            locationManager.requestLocation()
+        }
+        .refreshable {
             
             let lat = locationManager.userLocation?.coordinate.latitude ?? 50.8503
             let lon = locationManager.userLocation?.coordinate.longitude ?? 4.3517
             let city = authViewModel.currentUser?.city ?? locationManager.city
             
-            await viewModel.refreshDeals(lat: lat, lon: lon, city: city)
-            }*/
-        .onChange(of: locationManager.userLocation) { _, newLoc in
-            guard let location = newLoc, !didInitialFetch else { return }
+            await viewModel.manualRefresh(lat: lat, lon: lon, city: city)
+            }
+
+        .task {
+            locationManager.requestLocation()
+
+            let start = Date()
+
+            while locationManager.userLocation == nil {
+                if Date().timeIntervalSince(start) > 5 {
+                    break // timeout after 5 seconds
+                }
+                try? await Task.sleep(nanoseconds: 300_000_000)
+            }
+
+            guard !didInitialFetch else { return }
             didInitialFetch = true
 
-            Task {
-                await viewModel.refreshDeals(
-                    lat: location.coordinate.latitude,
-                    lon: location.coordinate.longitude,
-                    city: authViewModel.currentUser?.city ?? locationManager.city
-                )
-            }
+            let lat = locationManager.userLocation?.coordinate.latitude ?? 50.8503
+            let lon = locationManager.userLocation?.coordinate.longitude ?? 4.3517
+            let city = authViewModel.currentUser?.city ?? locationManager.city
+
+            await viewModel.refreshDeals(lat: lat, lon: lon, city: city)
         }
     }
     

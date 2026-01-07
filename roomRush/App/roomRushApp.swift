@@ -17,6 +17,8 @@ struct roomRushApp: App {
     @StateObject var authViewModel = AuthViewModel()
     @StateObject var homeViewModel = HomeViewModel()
     @StateObject var networkMonitor = NetworkMonitor()
+    
+    //making this variable private bc i don't want any reassigning to happen in any case
     @StateObject private var locationManager = LocationManager()
     
     let persistenceController = PersistenceController.shared
