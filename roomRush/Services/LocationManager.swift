@@ -7,14 +7,13 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     @Published var userLocation: CLLocation?
     @Published var city: String = ""
-    @Published var isLoading = false // Add this line
+    @Published var isLoading = false
     @Published var didResolveInitialLocation = false
 
     
     override init() {
         super.init()
         manager.delegate = self
-        // Set accuracy to 'NearestTenMeters' for faster response on real devices
         manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
     }
     
@@ -43,7 +42,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             let geocoder = CLGeocoder()
             geocoder.reverseGeocodeLocation(location) { placemarks, error in
                 DispatchQueue.main.async {
-                    self.isLoading = false // Stop the loading spinner
+                    self.isLoading = false
                     if let placemark = placemarks?.first {
                         self.city = placemark.locality ?? "Unknown"
                     }

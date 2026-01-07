@@ -1,12 +1,9 @@
 import Foundation
 
 struct User: Codable, Identifiable {
-    var id: String
+    let id: String
     var fullname: String
     var email: String
-    var bookingsCount: Int = 0
-    var savedCount: Int = 0
-    var totalSavedMoney: String = "$0"
     var favourites : [String] = []
     var hasCompletedOnboarding: Bool = false
     var city: String = ""

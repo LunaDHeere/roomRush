@@ -1,5 +1,4 @@
 import Foundation
-import FirebaseFirestore
 import CoreLocation
 
 struct Deal: Identifiable, Codable, Sendable {

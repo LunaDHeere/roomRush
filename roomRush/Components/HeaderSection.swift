@@ -11,13 +11,14 @@ struct HeaderSection: View {
                 Image(systemName: "mappin.and.ellipse")
                     .foregroundColor(.blue)
                 Text(city)
-                    .font(.system(size: 14))
+                    .font(.subheadline)
                     .foregroundColor(.gray)
             }
             Text("Last-Minute Deals")
-                .font(.system(size: 24, weight: .bold))
-            Text("Updated \(timeAgo)")
-                .font(.system(size: 14))
+                .font(.title2.bold())
+                .foregroundColor(.black)
+            Text(timeAgo)
+                .font(.caption)
                 .foregroundColor(.gray)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

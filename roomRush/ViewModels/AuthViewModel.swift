@@ -16,55 +16,50 @@ class AuthViewModel: ObservableObject {
     @Published var isInitialLoading = true
     
     private let db = Firestore.firestore()
-    
-    private var cancellables = Set<AnyCancellable>()
     private var authListenerHandle: AuthStateDidChangeListenerHandle?
     
     init() {
-            // 2. Assign the result to the handle to remove the warning
-            authListenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-                guard let self = self else { return }
+        authListenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            guard let self = self else { return }
                 
-                if let user = user {
-                    self.fetchUser(userId: user.uid)
-                } else {
-                    DispatchQueue.main.async {
-                        self.isAuthenticated = false
-                        self.currentUser = nil
-                        // Ensure splash screen ends if no user found
-                        self.isInitialLoading = false
-                    }
+            if let user = user {
+                self.fetchUser(userId: user.uid)
+            } else {
+                DispatchQueue.main.async {
+                    self.isAuthenticated = false
+                    self.currentUser = nil
+                    self.isInitialLoading = false
                 }
             }
         }
+    }
     deinit {
-            if let handle = authListenerHandle {
-                Auth.auth().removeStateDidChangeListener(handle)
-            }
+        if let handle = authListenerHandle {
+            Auth.auth().removeStateDidChangeListener(handle)
         }
+    }
     
-    // MARK: - Auth
     func signUp() {
         guard !fullname.isEmpty else {
-                self.errorMessage = "Please enter your full name."
-                return
-            }
+            self.errorMessage = "Please enter your full name."
+            return
+        }
         
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
             if let error = error {
                 DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
                 return
             }
-            
+
             guard let uid = result?.user.uid else { return }
-            
             let user = User(
                 id: uid,
                 fullname: self.fullname,
                 email: self.email,
                 hasCompletedOnboarding: true
             )
-            
+            // Logic preserved: Set UI onboarding to false to trigger flow, but save 'true' in DB?
+            //what does ai mean by that?
             DispatchQueue.main.async { self.completedOnboarding = false }
             self.saveUserToFirestore(user)
         }
@@ -76,7 +71,6 @@ class AuthViewModel: ObservableObject {
                 DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
                 return
             }
-            
             guard let uid = result?.user.uid else { return }
             self.fetchUser(userId: uid)
         }
@@ -95,11 +89,10 @@ class AuthViewModel: ObservableObject {
                 self.errorMessage = ""
             }
         } catch {
-            print(error.localizedDescription)
+            print("Error signing out: \(error.localizedDescription)")
         }
     }
-    
-    // MARK: - User Fetch & Save
+
     func fetchUser(userId: String) {
         db.collection("users").document(userId).getDocument { snapshot, error in
             if let error = error {
@@ -108,7 +101,6 @@ class AuthViewModel: ObservableObject {
             }
             
             guard let snapshot = snapshot else { return }
-            
             DispatchQueue.main.async {
                 if let user = try? snapshot.data(as: User.self) {
                     self.currentUser = user
@@ -141,13 +133,11 @@ class AuthViewModel: ObservableObject {
         user.city = city
         user.hasCompletedOnboarding = true
         
-        // 1. Update Firestore
         db.collection("users").document(user.id).updateData([
             "fullname": fullname,
             "city": city,
             "hasCompletedOnboarding": true
         ]) { error in
-            // 2. ONLY switch the screen AFTER the database confirms success
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { // 0.5s delay
                 self.currentUser = user
                 withAnimation {
@@ -157,8 +147,7 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
-    
-    // MARK: - Helpers
+
     func toggleFavourite(dealId: String) {
         guard var user = currentUser else { return }
         
