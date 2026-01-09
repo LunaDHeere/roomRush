@@ -52,6 +52,12 @@ class HomeViewModel: ObservableObject {
             
             print("📡 API returned \(amadeusHotels.count) hotels for \(city)")
             
+            // NOTE:
+            // Amadeus provides two separate APIs: Hotel List and Hotel Search. The Hotel List API is used here to retrieve hotel IDs, names, and locations. However, the Hotel Search API (which provides real pricing and availability)relies on a much smaller test database and often does not return results for nearby hotels, even when valid hotel IDs are available.
+            
+            // For this reason, pricing, availability, and rating values are generated locally to demonstrate the application's functionality and user experience.
+
+            
             let fetchedDeals = amadeusHotels.map { hotel in
                 Deal(
                     id: hotel.hotelId,
